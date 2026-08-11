@@ -1,3 +1,13 @@
+- [数据类型](#数据类型)
+- [运算符](#运算符)
+- [程序结构](#程序结构)
+- [数组](#数组)
+
+```text
+生成目录 ctrl+shift+p Markdown: Create Table of Contents
+更新目录 自动更新 或手动更新 ctrl+shift+p Markdown: Update Table of Contents
+```
+
 ## 数据类型
 内存占用
 ```cpp
@@ -137,3 +147,33 @@ for(int i = 1 ;i<10;i++){
     cout << endl;
 }
 ```
+break 直接结束此层循环
+```cpp
+for (int i=0;i<100;i++){
+    if(i=10){
+        break;
+    }
+}
+```
+continue 跳过此次循环的剩余代码，进入下一轮循环
+```cpp
+for(int i=0;i<10;i++){
+    for(int j=0;j<10;j++){
+        if(j=5){
+            continue;
+        }
+        cout <<i << endl;
+    }
+}
+```
+goto
+```cpp
+cout << "1"<< endl;
+cout << "2"<< endl;
+goto FLAG;
+cout << "3"<< endl;
+cout << "4"<< endl;
+FLAG:
+cout << "5"<< endl;
+```
+## 数组
