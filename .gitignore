@@ -1,0 +1,16 @@
+# CMake generated files
+build/
+out/
+cmake-build-*/
+
+# Compiled binaries and intermediate files
+*.exe
+*.obj
+*.o
+*.a
+*.dll
+*.lib
+
+# Local editor settings
+.vscode/
+

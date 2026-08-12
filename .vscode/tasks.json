@@ -2,35 +2,41 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "g++ 编译当前文件",
-            "type": "process",
-            "command": "D:\\DevTools\\WinLibs\\mingw64\\bin\\g++.exe",
+            "label": "CMake: 配置项目",
+            "type": "shell",
+            "command": "cmake",
             "args": [
-                "-std=c++17",
-                "-g",
-                "${file}",
-                "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "-S",
+                "${workspaceFolder}",
+                "-B",
+                "${workspaceFolder}/build",
+                "-G",
+                "MinGW Makefiles",
+                "-DCMAKE_CXX_COMPILER=g++",
+                "-DCMAKE_MAKE_PROGRAM=mingw32-make"
+            ]
+        },
+        {
+            "label": "CMake: 增量编译",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build"
             ],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
+            "dependsOn": "CMake: 配置项目",
             "group": {
                 "kind": "build",
                 "isDefault": false
             },
             "problemMatcher": [
                 "$gcc"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            }
+            ]
         },
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe build active file",
-            "command": "D:\\DevTools\\WinLibs\\mingw64\\bin\\g++.exe",
+            "command": "g++",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",

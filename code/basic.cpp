@@ -50,8 +50,69 @@ int main() {
             if (j == 5) {
                 break;//break会打印5个0 continue会打印9个0
             }
-            cout << i;
+            cout << i << endl;
         }
+    }
+
+    int arr1[5] = {1,2,3,4,5};
+    int end = sizeof(arr1)/sizeof(arr1[0]);
+    int num1;
+    for(int i=0;i<(end/2);i++){
+    num1 = arr1[i];
+    arr1[i]=arr1[end-1-i];
+    arr1[end-1-i]=num1;
+    }
+    for(int i=0;i<=(end-1);i++){
+    cout<< arr1[i] << endl;
+    }
+
+    int arr2[5]={1,2,3,4,5};
+    int end2 = sizeof(arr2)/sizeof(arr2[0]);
+    int end1 = end2;
+    int num2;
+    for(int i=0;i<(end1);i++){
+        if(end2>i){ 
+            num2 = arr2[i];
+            arr2[i] = arr2[end2-1];
+            arr2[end2-1] = num2;
+            end2--;
+        }
+    }
+    for(int i=0;i<=(end1-1);i++){
+    cout<< arr2[i] << endl;
+    }
+
+
+    int arr3[5] = {1,2,3,4,5};
+    int end3 = sizeof(arr3)/sizeof(arr3[0]) - 1;
+    int num3;
+    int len = sizeof(arr1)/sizeof(arr1[0]);
+    int start3 = 0;
+    while(start3<end3){
+        num3 = arr3[start3];
+        arr3[start3] = arr3[end3];
+        arr3[end3] = num3;
+        end3--;
+        start3++;
+    }
+    for(int i=0;i<len;i++){
+        cout << arr3[i];
+    }
+
+    int arr0[] = {5,0,6,3,7,1,8,9};
+    len = sizeof(arr0)/sizeof(arr0[0]);
+    int max;
+    for(int i=0;i<len-1;i++){
+        for(int j=0;j<len-i-1;j++){
+            if (arr0[j]>arr0[j+1]){
+                max = arr0[j];
+                arr0[j] = arr0[j+1];
+                arr0[j+1] = max;
+            }
+        }
+    }
+    for(int i=0;i<len;i++){
+        cout << arr0[i];
     }
     return 0;
 }

@@ -177,3 +177,105 @@ FLAG:
 cout << "5"<< endl;
 ```
 ## 数组
+定义
+```cpp
+int arr1[];
+int arr2[10]={};
+int arr3[]={1,2,3,4,5};
+```
+sizeof
+```cpp
+sizeof(arr1);//统计整个数组在内存中的长度
+sizeof(arr1[0]);//首个元素的内存占用长度
+sizeof(arr1)/sizeof(arr1[0]);//二者结合可知数组长度
+cout<<arr1 << endl;//打印出数组的首地址
+```
+元素逆置
+```cpp
+//法一
+int arr1[5] = {1,2,3,4,5};
+int end = sizeof(arr1)/sizeof(arr1[0]);
+int num1;
+for(int i=0;i<(end/2);i++){
+    num1 = arr1[i];
+    arr1[i]=arr1[end-1-i];
+    arr1[end-1-i]=num1;
+}
+for(int i=0;i<=(end-1);i++){
+    cout<< arr1[i] << endl;
+}
+
+//法二
+int arr2[5]={1,2,3,4,5}
+int end2 = sizeof(arr1)/sizeof(arr1[0]);
+int num2;
+for(int i =0;i<end2;i++){
+    num2 = arr2[i];
+    arr2[i] = arr2[end2-1];
+    arr2[end2-1] = num2;
+    end2--;
+}
+for(int i=0;i<=(end2-1);i++){
+    cout<< arr2[i] << endl;
+}
+
+//法三
+int arr3[5] = {1,2,3,4,5};
+int end3 = sizeof(arr3)/sizeof(arr3[0]) - 1;
+int num3;
+int len = sizeof(arr1)/sizeof(arr1[0]);
+int start3 = 0;
+while(start3<end3){
+    num3 = arr3[start3];
+    arr3[start3] = arr3[end3];
+    arr3[end3] = num3;
+    end3--;
+    start3++;
+}
+for(int i=0;i<len;i++){
+    cout << arr3[i];
+}
+```
+冒泡排序
+
+![截图](./picture/1.png)
+
+```text
+排序总轮数 = 元素个数 - 1
+每轮对比次数 = 元素个数 - 排序轮数 - 1
+```
+```cpp
+int arr0[] = {5,0,6,3,7,1,8,9};
+len = sizeof(arr0)/sizeof(arr0[0]);
+int max;
+for(int i=0;i<len-1;i++0){
+    for(int j=0;j<len-i-1;j++){
+        if (arr0[j]>arr0[j+1]){
+            max = arr0[j];
+            arr0[j] = arr0[j+1];
+            arr0[j+1] = max;
+        }
+    }
+}
+for(int i=0;i<len;i++){
+    cout << arro[i];
+}
+```
+二维数组
+```cpp
+ int arr[2][3] = {{1,2,3},{4,5,6}};//{1,2,3,4,5,6}也可以
+ int arr1[][3] = {1,2,3,4,5,6,7,8,9};//行数可以省略，列数不可以省略
+//遍历
+for(int i=0;i<2;i++){ 
+    for(int j=0;j<3;j++){
+        cout << arr[i][j] << endl;
+    }
+}   
+//取某个元素的首地址时需要加取址符 & 
+cout << (int)&arr[0][0] << endl;
+```
+## 函数
+程序从上往下读，如果函数定义在调用之后，那么需要提前声明
+```cpp
+
+```

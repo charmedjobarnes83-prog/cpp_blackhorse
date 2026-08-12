@@ -1,3 +1,0 @@
-D:/zzx-project/c++/black_horse/build/CMakeFiles/black_horse.dir
-D:/zzx-project/c++/black_horse/build/CMakeFiles/edit_cache.dir
-D:/zzx-project/c++/black_horse/build/CMakeFiles/rebuild_cache.dir
