@@ -277,5 +277,70 @@ cout << (int)&arr[0][0] << endl;
 ## 函数
 程序从上往下读，如果函数定义在调用之后，那么需要提前声明
 ```cpp
+#include <iostream>
+using namespace std;
 
+int max();
+
+int main(){
+    return 0;
+}
+int max(){
+    return 0;
+}
+```
+分文件编写函数
+```text
+建一个.h文件用于写声明
+建一个cpp文件用于写定义  顶部引用头文件#include "swap.h"
+```
+## 指针
+定义
+```cpp
+int a = 10;
+int * p = &a; //32位win占4字节   64位win占8字节 不管是什么数据类型(int/float/double)
+cout << p << " " << &a << endl;
+```
+解引用 *p -> p指向的数值
+```cpp
+int a = 100;
+int * p = &a;
+*p = 1000;
+cout << a <<" " << *p << endl; 
+```
+空指针
+```text
+初始化指针变量
+且空指针指向的内存无法访问
+内存编号0~255为系统占用内存，不允许用户访问
+```
+```cpp
+int *p = NULL;
+```
+野指针
+```text
+指针变量指向非法的内存空间，访问会出错
+```
+const
+```cpp
+//常量指针(修饰指针)  指针的指向可以更改，但指针指向的值不可更改
+int a = 10;
+int b = 20;
+const int *p = &a;
+p = &b;
+//*p = 30;错误
+
+//指针常量(修饰常量) 指针指向不可改，指向的值可以改
+int a = 10;
+int b = 20;
+int * const p = &a;
+*p = 30;
+//p = &b;错误
+
+//const既修饰指针也修饰常量   两个都不可以改
+int a = 10;
+int b = 20;
+const int * const p = &a;
+//p = &b;错误
+//*p = 30;错误
 ```

@@ -41,8 +41,10 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "-I",
+                "${workspaceFolder}/head",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "${workspaceFolder}/bin/${fileBasenameNoExtension}.exe",
                 "-std=c++17"
             ],
             "options": {
