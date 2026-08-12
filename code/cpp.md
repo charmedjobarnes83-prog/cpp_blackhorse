@@ -2,6 +2,8 @@
 - [运算符](#运算符)
 - [程序结构](#程序结构)
 - [数组](#数组)
+- [函数](#函数)
+- [指针](#指针)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
