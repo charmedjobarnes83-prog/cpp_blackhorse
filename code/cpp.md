@@ -4,6 +4,7 @@
 - [数组](#数组)
 - [函数](#函数)
 - [指针](#指针)
+- [结构体](#结构体)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -345,4 +346,158 @@ int b = 20;
 const int * const p = &a;
 //p = &b;错误
 //*p = 30;错误
+```
+指针访问数组元素
+```cpp
+int arr[10] = {1,2,3,4,5,6,7,8,9,10};
+int *p = arr;
+cout << "第一个元素为：" << arr[0] << endl;//1
+cout << "利用指针访问第一个元素" << *p << endl;//1
+p++;//让指针向后偏移四个字节(智能识别步长，若为char *p 则p++代表偏移一个字节)
+cout << "利用指针访问第二个元素：" << *p << endl;//2
+```  
+指针遍历数组
+```cpp
+int arr[10] = {1,2,3,4,5,6,7,8,9,10};
+int *p = arr;
+for(int i = 0;i<10;i++){
+    cout << *p << endl;
+    p++;
+}
+```
+指针和函数
+```cpp
+//值传递不会改变实参数据
+//地址传递可以实现改变实参数据
+void swap(int *p1,int *p2){
+    int temp = *p1;
+    *p1 = *p2; 
+    *p2 = temp;
+    cout << *p1 << *p2 << endl;// 20 10
+}
+int main(){
+    int a = 10;
+    int b = 20;
+    swap(&a,&b);
+    cout << a << b << endl;//20 10
+}
+```
+## 结构体
+定义
+```cpp
+#include <iostream>
+using namespace std;
+#include <string> //cout << name
+
+struct Student{
+    string name;
+    int age;
+    int score;
+}; // ;不要漏
+
+int main(){
+    struct Student s1;//创建结构体对象时，struct可以省略，即Student s1
+    s1.name = "mike";
+    s1.age = 11;
+    s1.score = 100;
+    cout << "name" << s1.name << "age" << s1.age << "score" << s1.score;
+    
+    struct Student s2 = {"jack",12,200};
+
+} 
+``
+结构体数组
+```cpp
+struct Student{
+    string name;
+    int age;
+    int score;
+};
+
+int main(){
+    struct Student stuArray[]={
+        {"mike",10,200},
+        {"jack",21,130},
+        {"lucy",30,90}
+    };
+    stuArray[2].name = "niko";
+
+}
+```
+结构体指针
+```cpp
+struct Student{
+    string name;
+    int age;
+    int score;
+};
+
+int main(){
+    Student s = {"mike",11,100};
+    Student *p = &s;//s是student型变量
+    cout << p->name 
+}
+```
+结构体嵌套结构体
+```cpp
+#include <iostream>
+using namespace std;
+#include <string> //cout << name
+
+struct Student{
+    int score;
+    int age;
+    string name;
+};
+struct Teacher{
+    string name;
+    int age;
+    int id;
+    Student stu;
+};
+
+int main(){
+    Teacher t;
+    t.id = 1001;
+    t.age = 20;
+    t.name = "mike";
+    t.stu.name = "jack";
+    t.stu.age = 10;
+    t.stu.score = 100;
+    cout << "teacher name:" << t.name << ", age:" << t.age << ", id:" << t.id << endl;
+    cout << "stu.name:" << t.stu.name << ", stu.age:" << t.stu.age << ", stu.score:" << t.stu.score << endl;
+}
+```
+结构体作为参数
+```cpp
+//值传递
+void test1(struct student s){
+    cout << s.name;
+}
+
+//地址传递
+void test2(struct student *p){
+    cout << p->name;
+}
+
+int main(){
+    Student s1 = {"mike",11,200};
+    test1(s1);
+    test2(&s1);
+}
+```
+const应用于结构体(常量指针)
+```cpp
+void test1(const Student *s){
+    
+}
+//用常量指针每次只传递一个指针，仅4字节，而值传递则会复制整个结构体的数据过去。相比之下速度更快且能防止栈溢出
+//相比于指针，常量指针不会改变实参的值
+```
+随机数
+```cpp
+#include <ctime>
+
+srand((unsigned int)time(NULL));
+int random = rand()%61+40//rand()%61 表0到60的随机数
 ```
