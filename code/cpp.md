@@ -6,6 +6,7 @@
 - [指针](#指针)
 - [结构体](#结构体)
 - [内存](#内存)
+  - [new](#new)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -490,7 +491,7 @@ int main(){
 const应用于结构体(常量指针)
 ```cpp
 void test1(const Student *s){
-    
+      
 }
 //用常量指针每次只传递一个指针，仅4字节，而值传递则会复制整个结构体的数据过去。相比之下速度更快且能防止栈溢出
 //相比于指针，常量指针不会改变实参的值
@@ -505,16 +506,72 @@ int random = rand()%61+40//rand()%61 表0到60的随机数
 ## 内存
 cpp程序运行时内存分区
 ```text
-代码区 : 存放函数体的二进制代码
+代码区 : 存放函数体的二进制代码  (共享 只读)   
 全局区 : 存放全局变量、静态变量、常量
-栈区 : 由编译器自动分配释放，存放函数的参数值，局部变量等
+栈区 : 由编译器自动分配释放，存放函数的参数值，局部变量等 (不要返回局部变量的地址)
 堆区 : 由程序员分配释放，若程序员不操作，程序结束时由操作系统回收
 ```
-代码区
-```text
-共享 只读   
+不要返回局部变量的地址
+```cpp
+int * func(){
+    int a = 10;
+    return &a;
+}
+int main(){
+    int *p = func();
+    cout << *p << endl;//第一次可以打印出正确的数字10
+    cout << *p << endl;//第二次数据不再保留
+}
 ```
-全局区
-```text
+利用new关键字，可以将数据开辟到堆区->可以返回局部变量的地址
+```cpp
+int * func(){
+    int *p = new int(10);
+    //new会返回开辟出的内存的地址(即返回new的类型的指针)，10代表将此数据赋初值
+    return p; 
+}
+int main(){
+    int *p = func();
+    cout  << *p << endl;
+    cout  << *p << endl;//均能成功返回数据10
 
+}
 ```
+### new
+new的基本语法(new什么数据，就会返回个什么类型的指针)
+```cpp
+int * func(){
+    int *p = new int(10);
+    return p; 
+}
+void test1(){
+    int *p = func();
+    cout  << *p << endl;
+    cout  << *p << endl;
+    //堆区的数据由程序员管理开辟，程序员管理释放
+    //释放堆区数据用delete
+    delete p;
+    cout  << *p << endl;//报错，内存已释放，无法访问
+}
+void test2(){
+    //在堆区中new开辟数组
+    new int[10];//10代表有10个元素，(10)代表赋初值10
+    for(int i=0;i<10;i++){
+        arr[i] = i+100;
+    }
+    for(int i=0;i<10;i++){
+       cout << arr[i] <<endl;//可正常输出
+    } 
+    //释放堆区数组的内存,加上中括号
+    delete[] arr;
+    for(int i=0;i<10;i++){
+       cout << arr[i] <<endl;//内存已释放，无法访问
+    }
+
+}
+int main(){
+    test1();
+    test2();
+}
+```
+
