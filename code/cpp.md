@@ -5,6 +5,7 @@
 - [函数](#函数)
 - [指针](#指针)
 - [结构体](#结构体)
+- [内存](#内存)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -500,4 +501,20 @@ void test1(const Student *s){
 
 srand((unsigned int)time(NULL));
 int random = rand()%61+40//rand()%61 表0到60的随机数
+```
+## 内存
+cpp程序运行时内存分区
+```text
+代码区 : 存放函数体的二进制代码
+全局区 : 存放全局变量、静态变量、常量
+栈区 : 由编译器自动分配释放，存放函数的参数值，局部变量等
+堆区 : 由程序员分配释放，若程序员不操作，程序结束时由操作系统回收
+```
+代码区
+```text
+共享 只读   
+```
+全局区
+```text
+
 ```

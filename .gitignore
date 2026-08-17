@@ -1,5 +1,6 @@
 # CMake generated files
 build/
+build-mingw/
 out/
 cmake-build-*/
 
