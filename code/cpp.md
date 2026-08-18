@@ -7,6 +7,7 @@
 - [结构体](#结构体)
 - [内存](#内存)
   - [new](#new)
+- [引用(给变量起别名)](#引用给变量起别名)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -574,4 +575,73 @@ int main(){
     test2();
 }
 ```
+## 引用(给变量起别名)
+数据类型 &别名 = 原名
+```cpp
+int &b = a;
+b = 20;
+cout << a << endl;//输出20
+//a，b操纵的是同一片内存
+```
+注意事项
+```cpp
+//引用必须要初始化
+int &b;//错误示范
+int &b = a;
 
+//引用一旦初始化便不可更改
+int a = 10;
+int &b = a;
+int c = 20;
+&b = c;//错误示范
+b = c;//仅赋值操作而非更改引用
+```
+引用做函数参数
+```cpp
+//形参修饰实参有两种方法，一种是地址传递，一种是引用传递
+void swap1(int &a,int &b){//与swap1(int *a,int *b) 做区分
+    //此处的ab是实参ab的别名，实际上就是指向实参ab的地址
+    int temp = a;
+    a = b;
+    b = temp;    
+}
+int  main(){
+    int a = 10;
+    int b = 20;
+    swap1(a,b);
+    cout << a << endl;
+    cout << b << endl；//成功交换
+}
+```
+引用做函数返回值
+```cpp
+//不要返回局部变量的引用(和不要返回局部变量的地址原理一样，即函数运行完就释放局部变量的内存)
+int& test1(){
+    int a = 10;
+    return a;
+}
+int& test2(){
+    static int a = 10;//静态变量，存在全局区，全局区上的数据等程序结束后再释放
+    return a;
+}
+int main(){
+    a1 = test1();
+    cout << a1 << endl;//10
+    cout << a1 << endl;//无结果
+    a2 = test2();
+    cout << a2 << endl;//20
+    cout << a2 << endl;//20
+    //函数的调用可以作为左值
+    a3 = test2() = 1000;
+    cout << a3 << endl;//1000
+    cout << a3 << endl;//1000
+}
+```
+引用本质 相当于一个常量指针
+```cpp
+    int a =10;
+    
+    int * const ref = &a;
+    等价
+    int& ref = a;
+```
