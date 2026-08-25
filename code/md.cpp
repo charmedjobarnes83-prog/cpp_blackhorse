@@ -5,10 +5,10 @@ using namespace std;
 class Person{
 public:
     Person(){
-        cout<<"1构造函数调用"<<endl;
+        cout<<"1构造函数调用1"<<endl;
     }
     ~Person(){
-        cout<<"2析构函数调用"<<endl;
+        cout<<"2析构函数调用2"<<endl;
     }
 };
 int main(){

@@ -32,7 +32,7 @@
         {
             "type": "shell",
             "label": "C/C++: g++.exe build active file",
-            "command": "${workspaceFolder}/build.bat",
+            "command": "${workspaceFolder}\\build.bat",
             "args": [
                 "${file}"
             ],
@@ -40,7 +40,10 @@
                 "cwd": "${workspaceFolder}",
                 "shell": {
                     "executable": "cmd.exe",
-                    "args": ["/d", "/c"]
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
                 }
             },
             "dependsOn": "结束当前程序",
@@ -57,14 +60,20 @@
         {
             "label": "结束当前程序",
             "type": "shell",
-            "command": "powershell",
+            "command": "${workspaceFolder}\\kill_last.bat",
             "args": [
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-Command",
-                "Get-Process -Name '${fileBasenameNoExtension}' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; exit 0"
+                "${fileBasenameNoExtension}"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "cmd.exe",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            },
             "problemMatcher": []
         }
     ]
