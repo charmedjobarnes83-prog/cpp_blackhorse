@@ -904,5 +904,97 @@ int main() {
 没有返回值也不写void
 函数名称与类名相同，在名称前加上~
 构造函数无参数，因此不可以重载
-程序在对象销毁前会自动调用析构，无需手动调用，且只会调用一次
+程序在对象销毁前会自动调用析构，无需手动调用，且只会调用一次 
+```
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+
+class Person {
+public:
+    Person() {
+        cout << "构造函数调用" << endl;
+    }
+    ~Person() {
+        cout << "析构函数调用" << endl;
+    }
+};
+int main() {
+    Person p;//自动调用构造和析构函数
+    //如果自己不提供，那么编译器会提供一个空实现的构造和析构函数
+    //对象被销毁才会运行析构函数
+    system("pause");
+    return 0;
+}
+```
+构造函数的分类
+```text
+按参数分类：有参构造和无参构造
+按类型分类：普通构造和拷贝构造
+```
+三种调用方式
+```texts
+括号法
+显示法
+隐式转换法
+```
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+
+class Person {
+public:
+    //构造函数
+    Person() {
+        cout << "无参(默认)构造函数" << endl;
+    }
+    Person(int a) {
+        age = a;
+        cout << "有参构造函数" << endl;
+    }
+
+    Person(const Person& p) {//const保证不修改原对象，且以引用的方式传递
+        age = p.age;//将传入的对象的所有属性拷贝到自己身上
+        cout << "拷贝构造函数" << endl;
+    }
+    ~Person() {
+        cout << "析构函数" << age << endl;
+    }
+private:
+    int age;
+};
+
+
+int main() {
+    //括号法
+    Person p1;//不要写成Person p1(); 会被视作一个函数声明
+    Person p2(10);
+    Person p3(p2);//p3拷贝p2的数据
+    //创建p1——创建p2——创建p3——销毁p3——销毁p2——销毁p1，至于这个p1销毁时age=1则是由于无参，所以给的一个默认值
+
+    //显示法
+    Person p1;
+    Person p2 = Person(10);
+    Person p3 = Person(p2);
+    //Person(10)、Person(p2)为匿名对象 
+    //特点:当系统前行执行结束后，系统会立刻回收匿名对象
+    Person(10);
+    cout << "aa" << endl;
+    //不要利用拷贝函数初始化匿名对象 如Person(p3) 等价于  Person(p3) == Person p3;
+
+    //隐式转换法
+    Person p4 = 10;//相当于Person p4 = Person(10) 有参构造
+}
+
+```
+拷贝构造函数调用时机
+```text
+使用一个已经创建完毕的对象来初始化一个新的对象
+值传递的方式给函数参数传值
+以值方式返回局部对象
+```
+```cpp
+
 ```
