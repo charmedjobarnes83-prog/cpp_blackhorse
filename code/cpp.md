@@ -8,6 +8,13 @@
 - [内存](#内存)
   - [new](#new)
 - [引用(给变量起别名)](#引用给变量起别名)
+- [函数高级](#函数高级)
+  - [函数的默认参数](#函数的默认参数)
+  - [函数的占位参数](#函数的占位参数)
+  - [函数重载](#函数重载)
+- [类\&对象](#类对象)
+  - [封装](#封装)
+  - [对象](#对象)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -619,7 +626,7 @@ int  main(){
 int& test1(){
     int a = 10;
     return a;
-}
+}  
 int& test2(){
     static int a = 10;//静态变量，存在全局区，全局区上的数据等程序结束后再释放
     return a;
@@ -635,7 +642,7 @@ int main(){
     a3 = test2() = 1000;
     cout << a3 << endl;//1000
     cout << a3 << endl;//1000
-}
+} 
 ```
 引用本质 相当于一个常量指针
 ```cpp
@@ -645,3 +652,257 @@ int main(){
     等价
     int& ref = a;
 ```
+const修饰引用--防止误操作
+```cpp
+void  showValue(int &val){
+    val = 1000;
+    cout << val << ednl;
+}
+void showValue1(const int &val){//加上const 对val的修改操作便是违法行为
+    cout <<  val << ednl;
+}
+int main(){
+    int a = 100;
+    showValue(a);//函数内修改val，指向同一片内存，a也被修改为1000
+    showValue1(a);
+    cout<< a<< endl;
+}
+```
+```cpp
+int main(){
+    int& ref = 10;//编译错误
+    const int& ref = 10;//编译器优化代码，int temp = 10;  const  int& ref = temp;
+}
+```
+## 函数高级
+### 函数的默认参数
+默认参数必须放在最后。如果自己传入数据，那么就用自己的数据，如果没有传入数据，那么就用默认值。
+```cpp
+如 int func(int a,int b = 1,int c){} //错误
+   int func(int a ,in b = 1, int c = 2){} //正确
+```
+```cpp
+int sum(int a,int b,int c=1){
+    return a+b+c;
+}
+int main(){
+    int a = 1;
+    int b = 2;
+    int c = 3;
+    sum = sum(a,b,c);  //结果为6
+    sum1 = sum(a,b);  //结果为4
+}
+``` 
+如果函数声明有默认参数，函数实现就不能有默认参数(二选一)
+```cpp
+int func(int a=10,int b=20);
+int func(int a=10,int b=20){//报错，重新定义了默认参数
+    return a+b;
+}
+```
+### 函数的占位参数
+占位了必须传对应的数据，但传过来的数据暂时用不到
+```cpp
+void func(int a,int){
+    pass;
+}
+int main(){
+    func(10,20);
+}
+```
+占位参数可以有默认参数
+```cpp
+void func(int a,int = 20){
+    pass;
+}
+int main(){
+    func(10);
+}
+```
+### 函数重载
+函数名可以相同，以提高复用性
+```text
+条件 均要满足
+一:同一个作用域下
+二:函数名称相同
+三:函数参数类型不同，或个数不同，或顺序不同
+```
+```cpp
+void func(){
+    cout << "1" << endl;
+}
+void func(int a){
+    cout << "2" << endl;
+}
+int main(){
+    func();
+    func(1);
+}
+```
+函数的返回值不可以作为函数重载的条件
+```cpp
+//错误示范
+void func(){
+    cout << "1" << endl;
+}
+int func(){//仅返回值不同不满足条件
+    cout << "2" << endl;
+}
+int main(){
+    func();//1
+    func(1);//2
+}
+```
+引用作为重载的条件
+```cpp
+void func(int &a){
+    cout << "1" << endl;
+}
+void func(const int &a){
+    cout << "2" << endl;
+}
+int main(){
+    int a =10;
+    func(a);//a是变量,打印1
+    func(10);//打印2
+}
+```
+函数重载遇到默认参数
+```cpp
+void func(int a,int b=10){
+     cout << "1" << endl;
+}
+void func(int a){
+    cout << "2" << endl;
+}
+int main(){
+    func(10);//这样调用错误，两个func都能调用
+    //故避免这种情况发生
+    func(10,20);//可成功调用，意味着第二个func()调用不了
+}
+```
+## 类&对象
+### 封装
+属性和行为作为整体，即变量和函数
+```text
+类中的属性和行为，统一称为成员
+属性：成员属性/成员变量
+行为：成员函数/成员方法
+```
+```cpp
+class Circle {
+
+public:
+
+    int m_r;
+    
+    double calculate1() {
+        return 2 * (3.14) * m_r;
+    }
+};
+
+int main() {
+    Circle c1;
+    c1.m_r = 10;
+    cout << "周长" << c1.calculate1() << endl;
+}
+```
+```cpp
+class student {
+
+public:
+    string name;
+    int id;
+
+    void set() {
+        cin >> name;//cin << this->name
+        cin >> id;//cin << this->id
+    }
+    string printname() {
+        return name;
+    }
+    int printid() {
+        return id;
+    }
+
+};
+
+
+int main() {
+    student s1;
+    s1.set();
+    cout << s1.printid() << endl;
+    cout << s1.printname() << endl;
+}
+```
+访问权限
+```text
+public 公共--成员 类内可以访问，类外也可以访问
+private 私有--成员 类内可以访问，类外不可以访问(子类不可以访问父类中的private内容)
+protected 保护--成员 类内可以访问，类外不可以访问(子类可以访问父类中的protected内容)
+```
+class与struct区别
+```text
+默认的访问权限不同
+
+struct中默认为public
+class 中默认为private
+```
+在开发中，一般将成员属性设为私有，而成员函数设为公有
+```text
+优点1：将所有成员属性设为私有，可以自己控制读写权限(自己设置读写的接口)
+优点2：对于写权限，可以检测数据的有效性
+```
+```cpp
+class student {
+
+private:
+    string my_name;
+    int my_id = 10;
+
+public:
+    void setname(string name) {
+        my_name = name;
+    }
+    string printname() {
+        return my_name;
+    }
+    int printid() {
+        return my_id;
+    }
+
+};
+
+
+int main() {
+    student s1;
+    s1.setname("mike");//用了公有的写接口
+    //s1.my_id = 30;//报错，无法访问私有变量，即只读不写
+    //cout << s1.my_id << endl;//没用公有的读接口，无法访问
+    cout << s1.printname() << endl;//用了公有的读接口
+    cout << s1.printid() << endl;//用了公有的读接口
+}
+```
+封装案例
+
+ [package_test.cpp 源码](./package_test.cpp)
+
+ [package_test1.cpp 源码](./package_test1.cpp)
+
+ ### 对象
+ 构造函数
+ ```text
+类名(){}
+没有返回值也不写void
+函数名称与类名相同
+构造函数可以有参数因此可以发生重载
+程序在调用对象时会自动调用构造，无需手动调用，且只会调用一次
+ ```
+ 析构函数
+ ```text
+~类名(){}
+没有返回值也不写void
+函数名称与类名相同，在名称前加上~
+构造函数无参数，因此不可以重载
+程序在对象销毁前会自动调用析构，无需手动调用，且只会调用一次
+ ```
