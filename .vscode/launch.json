@@ -5,14 +5,14 @@
             "name": "g++ 编译并调试",
             "type": "cppdbg",
             "request": "launch",
-            "program": "D:/Project/cpp_blackhorse/bin/${fileBasenameNoExtension}.exe",
+            "program": "${workspaceFolder}/bin/${fileBasenameNoExtension}.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "D:/DevTools/WinLibs/mingw64/bin/gdb.exe",
+            "miDebuggerPath": "${env:MinGW_HOME}/bin/gdb.exe",
             "setupCommands": [
                 {
                     "description": "为 gdb 启用整齐打印",

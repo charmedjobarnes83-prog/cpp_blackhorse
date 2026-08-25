@@ -23,4 +23,7 @@ for %%f in ("%MAINDIR%*.cpp") do (
     if errorlevel 1 set "SRCS=!SRCS! "%%f""
 )
 
-g++ -fdiagnostics-color=always -g "%MAIN%" %SRCS% -I "%HEADERDIR%" -o "%OUTDIR%\%~n1.exe" -std=c++17
+REM 全链路统一 UTF-8：源码 UTF-8 -> exe 内字符串保持 UTF-8。
+REM 终端显示由 VS Code 工作区设置里的终端 profile 自动 chcp 65001 配合；
+REM F5 调试管道天然按 UTF-8 解读，两种运行方式都不乱码。
+g++ -fdiagnostics-color=always -g "%MAIN%" %SRCS% -I "%HEADERDIR%" -o "%OUTDIR%\%~n1.exe" -std=c++17 -finput-charset=UTF-8 -fexec-charset=UTF-8

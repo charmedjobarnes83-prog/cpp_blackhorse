@@ -3,20 +3,16 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**",
-                "D:/DevTools/WinLibs/mingw64/include",
-                "D:/DevTools/WinLibs/mingw64/x86_64-w64-mingw32/include"
+                "${workspaceFolder}/**"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "D:/DevTools/WinLibs/mingw64/bin/g++.exe",
-            "intelliSenseMode": "gcc-x64",
-            "compilerArgs": [
-                "-std=c++17"
-            ]
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
         }
     ],
     "version": 4

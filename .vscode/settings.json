@@ -1,4 +1,18 @@
 {
+    // 新建/保存的文件统一 UTF-8（与编译参数 -finput-charset=UTF-8 呼应）
+    "files.encoding": "utf8",
+    // 集成终端启动时自动切到 UTF-8 代码页(65001)，配合 exe 的 UTF-8 输出：
+    // 点▶按钮直接跑、F5 调试管道，两种方式汉字都不乱码
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "args": ["-NoLogo", "-NoExit", "-Command", "chcp 65001 > $null"]
+        },
+        "Command Prompt": {
+            "path": "cmd.exe",
+            "args": ["/k", "chcp 65001 > nul"]
+        }
+    },
     "cmake.generator": "MinGW Makefiles",
     "markdown.extension.toc.updateOnSave": true
 }

@@ -17,6 +17,7 @@ foreach(CPP_FILE ${CPP_FILES})
     add_executable(${TARGET_NAME} ${CPP_FILE})
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/head)
 
+    # 全链路统一 UTF-8（配合工作区终端 profile 的 chcp 65001；F5 调试管道也按 UTF-8 解读）
     if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(${TARGET_NAME} PRIVATE
             -finput-charset=UTF-8
