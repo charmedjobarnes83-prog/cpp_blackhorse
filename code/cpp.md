@@ -995,6 +995,319 @@ int main() {
 值传递的方式给函数参数传值
 以值方式返回局部对象
 ```
+构造函数调用规则
+```text
+创建一个类，编译器自动生成三个函数(默认构造函数/析构函数/拷贝构造函数)
+若用户自定义有参构造函数，c++不再提供默认无参构造函数，但会提供默认拷贝构造
+若用户自定义拷贝构造函数，c++不再提供其他构造函数
+```
+深拷贝和浅拷贝(面试常问)
+```text
+浅拷贝：简单的赋值拷贝操作
+深拷贝：在堆区重新申请空间，进行拷贝操作
+```
+
+```cpp
+//自动生成拷贝函数
+#include <iostream>
+using namespace std;
+#include <string>
+
+class Person{
+public:
+    Person(int age,int height) {
+        m_age = age;
+        m_height = new int(height);//new会返回开辟出内存的地址，即指定类型的指针，将数据开辟到堆区
+        //析构函数主要作用：将堆区的数据进行释放
+        cout << "有参构造函数" << endl;
+    }
+    ~Person(){
+        if(m_height != NULL){
+            delete m_height;
+            m_height =  NULL;
+        }
+        cout << "析构函数调用" <<endl;
+    }
+    int m_age;
+    int *m_height;
+};
+int main(){
+    Person p1(18,160);
+    Person p2(p1);
+    cout<<p2.m_age<<endl;
+    cout<<*p2.m_height<<endl;
+}
+//对于m_age,利用编译器提供的拷贝函数，会做浅拷贝操作
+//对于*m_height，
+```
+```text
+浅拷贝会带来问题：堆区重复释放
+解决:利用深拷贝解决
+```
+```cpp
+class Person{
+public:
+    Person(int age,int height) {
+        m_age = age;
+        m_height = new int(height);
+        cout << "有参构造函数" << endl;
+    }
+    ~Person(){
+        if(m_height != NULL){
+            delete m_height;
+            m_height =  NULL;
+        }
+        cout << "析构函数调用" <<endl;
+    }
+    Person(const Person &p){
+        cout << "拷贝函数调用" << endl;
+        m_age = p.m_age;
+        m_height = p.m_height;
+        //m_height = p.m_height;编译器默认实现此行代码
+        //深拷贝操作，解决浅拷贝带来的问题
+        m_height = new int(*p.m_height);
+    }
+    int m_age;
+    int *m_height;
+}
+```
+初始化列表:构造函数()：属性1(值1),属性2(值2)...{}
+```cpp
+class Person{
+public:
+    //传统的创建对象时就赋初值
+    //Person(int a,int b,int c){
+    //    m_a = a;
+    //    m_b = b;
+    //    m_c = c;
+    //}
+
+    //初始化列表赋初值
+    Person() :m_a(10),m_b(20),m_c(30){
+        
+    }
+
+    //改进版初始化列表赋值
+    Person(int a,int b,int c):m_a(a),m_b(b),m_c(c){
+        
+    }
+
+//private:
+    int m_a;
+    int m_b;
+    int m_c;
+};
+void test1(){
+    //Person p(10,20,30);
+
+    //Person p;
+    
+    Person p(30,20,10);
+    
+    cout << p.m_a<<endl;
+    cout << p.m_b<<endl;
+    cout << p.m_c<<endl;
+}
+
+int main(){
+   test1();
+}
+```
+类对象作为类成员
+```cpp
+//先构造内部的类对象，即先构造phone对象，后构造person对象
+//栈——>先进后出。先释放person对象，在释放phone对象
+class phone{
+public:
+    phone(string pname){
+        m_name = pname;
+        cout << "phone构造函数" << endl;
+    }
+    ~phone(){
+        cout<<"phone析构函数"<<endl;
+    }
+
+    string m_name;
+};
+
+class Person{
+public:
+    Person(string name,string pname):m_name(name),m_phone(pname){//m_phone(pname)等价于phone m_phone = pname,即初始化phone对象的m_name为pname
+        cout << "person构造函数" << endl;
+    }
+    ~Person(){
+        cout<<"person析构函数"<<endl;
+    }
+
+    string m_name;
+    phone m_phone;
+};
+
+void test1(){
+    Person p("mike","iphone");
+    cout << p.m_name << "+" << p.m_phone.m_name << endl;
+}
+int main(){
+    test1();
+}
+```
+静态成员
+```text
+静态成员变量
+    所有对象共享同一份数据
+    在编译阶段分配内存
+    类内声明，类外初始化
+    不属于某个对象，有两种访问方式(1:通过对象进行访问  2：通过类名进行访问)
+静态成员函数
+    所有对象共享同一个函数
+    静态成员函数只能访问静态成员变量
+        (类外调用私有静态变量一般用公共静态函数，因为静态变量不属于任何对象，若使用普通函数，还需要建立对象访问函数。)
+```
+```cpp
+class person{
+public:  
+    int m_c;
+    //类内声明，类外初始化
+    static int m_a;
+
+    static void func(){
+        cout<<"静态函数调用"<<endl;
+        m_a = 10;
+        m_b = 20;
+        //m_c = 30;静态函数无法访问非静态变量，因为要建立特定对象访问非静态变量
+    }
+private:
+    static int m_b;
+};
+
+int person::m_a = 100;
+int person::m_b = 200;
+
+void test1(){
+    person p;
+    cout << p.m_a<<endl;
+    person p1;
+    p1.m_a = 23;
+    cout << p.m_a<<endl;
+}
+
+void test2(){
+    person p2;
+    cout << p2.m_a << endl;//通过对象访问静态变量
+    cout << person::m_a << endl;//通过类名访问静态变量 ** 推荐
+    //cout << person::m_b << endl;类外无法直接访问私有成员变量
+}
+
+void test3(){
+    person p3;
+    p3.func();//通过对象调用
+    person::func();//通过类名调用 ** 推荐
+}
+
+int main(){
+    test1();
+    test2();
+    test3();
+}
+```
+成员函数和成员变量是分开存储的
+```cpp
+class Person{
+
+};
+
+class student{
+    int m_a;//***非静态成员变量，属于类的对象上
+    static int m_b;//静态成员变量，不属于类的对象上
+    void func(){}//非静态成员函数，也不属于类的对象上
+    static void func1(){}//静态成员函数，也不属于类的对象上
+};
+
+void test1(){
+    Person p;//***空对象占用内存空间为1，c++编译器会给空对象也分配一个字节的空间，目的是为了区分空对象占内存的位置
+    cout << "sizeof(p)=" << sizeof(p) << endl;//1字节
+    student s;
+    cout << "sizeof(s)=" << sizeof(s) << endl;//4字节,静态变量不属于类的对象上
+}
+
+int main(){
+    test1();
+}
+```
+this指针(解决名称冲突/返回对象本身)
+```cpp
+//错误示范
+class person{
+public:
+    person(int age){
+        age = age;//此处三个age由于重名，被视作为一个age变量
+    }
+    int age;
+};
+
+void test1(){
+    person p1(18);
+    cout << p1.age << endl;//乱码
+}
+
+int main(){
+    test1();
+}
+```
+```cpp
+//解决办法(m_age/this->age)   解决名称冲突
+class person{
+public:
+    person(int age){
+        this->age = age;//this指向的是被调用的成员函数所属的对象，this.age指此类的成员变量age而非形参
+    }
+    int age;
+};
+
+void test1(){
+    person p1(18);
+    cout << p1.age << endl;
+}
+
+int main(){
+    test1();
+}
+```
+```cpp
+//*this实现返回对象本身
+class person{
+public:
+    person(int age){
+        this->age = age;//this指向的是被调用的成员函数所属的对象，this.age指此类的成员变量age而非形参
+    }
+    int age;
+    person& personaddage(person &p){//注意返回值类型是person&,如果写成了person，返回的只是p4的一个副本，后面做的两次都只是基于副本加1，并未改变原变量实际值
+    //person  personaddage(...) // 返回副本(值)
+    //person& personaddage(...) // 返回原对象(引用)
+        this->age += p.age;
+        return *this;
+    }
+};
+
+void test2(){
+    person p2(20);
+    person p3(40);
+    person p4(10);
+    person p5(1);
+    cout << p3.age << endl;
+    p3.personaddage(p2);
+    cout << p3.age << endl;
+    cout << p4.age << endl;
+    p4.personaddage(p5).personaddage(p5).personaddage(p5);//链式编程
+    cout << p4.age << endl;
+}
+
+int main(){
+    test2();
+}
+
+```
+空指针调用成员函数
 ```cpp
 
 ```
