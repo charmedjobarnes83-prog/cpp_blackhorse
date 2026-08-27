@@ -840,6 +840,8 @@ int main() {
 public 公共--成员 类内可以访问，类外也可以访问
 private 私有--成员 类内可以访问，类外不可以访问(子类不可以访问父类中的private内容)
 protected 保护--成员 类内可以访问，类外不可以访问(子类可以访问父类中的protected内容)
+
+私有成员通常由构造函数初始化，再通过公共成员函数读取或修改
 ```
 class与struct区别
 ```text
@@ -903,7 +905,7 @@ int main() {
 ~类名(){}
 没有返回值也不写void
 函数名称与类名相同，在名称前加上~
-构造函数无参数，因此不可以重载
+析构函数无参数，因此不可以重载
 程序在对象销毁前会自动调用析构，无需手动调用，且只会调用一次 
 ```
 ```cpp
@@ -972,9 +974,9 @@ int main() {
     Person p1;//不要写成Person p1(); 会被视作一个函数声明
     Person p2(10);
     Person p3(p2);//p3拷贝p2的数据
-    //创建p1——创建p2——创建p3——销毁p3——销毁p2——销毁p1，至于这个p1销毁时age=1则是由于无参，所以给的一个默认值
+    //创建p1——创建p2——创建p3——销毁p3——销毁p2——销毁p1，至于这个p1销毁时age=1则是由于无参，所以给的一个随机值
 
-    //显示法
+    //显式法
     Person p1;
     Person p2 = Person(10);
     Person p3 = Person(p2);
@@ -986,6 +988,7 @@ int main() {
 
     //隐式转换法
     Person p4 = 10;//相当于Person p4 = Person(10) 有参构造
+    Person p5 = p2;//同理
 }
 
 ```
@@ -1003,8 +1006,8 @@ int main() {
 ```
 深拷贝和浅拷贝(面试常问)
 ```text
-浅拷贝：简单的赋值拷贝操作
-深拷贝：在堆区重新申请空间，进行拷贝操作
+浅拷贝：简单的赋值拷贝操作(复制地址)
+深拷贝：在堆区重新申请空间，进行拷贝操作(复制地址指向的数据，并创建新的内存)
 ```
 
 ```cpp
@@ -1015,7 +1018,7 @@ using namespace std;
 
 class Person{
 public:
-    Person(int age,int height) {
+    Person(int age,int height) {    
         m_age = age;
         m_height = new int(height);//new会返回开辟出内存的地址，即指定类型的指针，将数据开辟到堆区
         //析构函数主要作用：将堆区的数据进行释放
@@ -1038,11 +1041,11 @@ int main(){
     cout<<*p2.m_height<<endl;
 }
 //对于m_age,利用编译器提供的拷贝函数，会做浅拷贝操作
-//对于*m_height，
+//对于*m_height，仍然是浅拷贝操作，浅拷贝操作对于指针变量会有影响。更改p1.height，p2.height也会随之更改。还有重复释放的问题。
 ```
 ```text
-浅拷贝会带来问题：堆区重复释放
-解决:利用深拷贝解决
+浅拷贝会带来问题：堆区重复释放(相互影响)
+解决:利用深拷贝解决(重新申请内存)
 ```
 ```cpp
 class Person{
@@ -1069,7 +1072,7 @@ public:
     }
     int m_age;
     int *m_height;
-}
+};  
 ```
 初始化列表:构造函数()：属性1(值1),属性2(值2)...{}
 ```cpp
@@ -1157,7 +1160,7 @@ int main(){
     所有对象共享同一份数据
     在编译阶段分配内存
     类内声明，类外初始化
-    不属于某个对象，有两种访问方式(1:通过对象进行访问  2：通过类名进行访问)
+    不属于某个对象,属于类，有两种访问方式(1:通过对象进行访问  2：通过类名进行访问)
 静态成员函数
     所有对象共享同一个函数
     静态成员函数只能访问静态成员变量
@@ -1165,7 +1168,7 @@ int main(){
 ```
 ```cpp
 class person{
-public:  
+public: 
     int m_c;
     //类内声明，类外初始化
     static int m_a;
@@ -1177,11 +1180,11 @@ public:
         //m_c = 30;静态函数无法访问非静态变量，因为要建立特定对象访问非静态变量
     }
 private:
-    static int m_b;
+    static int m_b;//仅是声明
 };
 
 int person::m_a = 100;
-int person::m_b = 200;
+int person::m_b = 200;//定义并赋初值，private运行静态成员在类外定义
 
 void test1(){
     person p;
@@ -1259,7 +1262,7 @@ int main(){
 class person{
 public:
     person(int age){
-        this->age = age;//this指向的是被调用的成员函数所属的对象，this.age指此类的成员变量age而非形参
+        this->age = age;//this指向的是被调用的成员函数所属的对象，this->age指此类的成员变量age而非形参
     }
     int age;
 };
@@ -1308,6 +1311,91 @@ int main(){
 
 ```
 空指针调用成员函数
-```cpp
+```text
+空指针可以访问成员函数
+但涉及到this时，会报错
+```
+```text
+空指针调用非静态成员函数属于未定义行为，不允许这样使用。
 
+show1() 没有访问对象的数据，在某些编译器和运行环境中可能碰巧正常输出，
+但这不代表写法正确。
+
+showage() 中的 age 等价于 this->age。
+由于 p 是空指针，调用时 this 也是空指针，不存在一个真实的 person 对象，
+因此无法读取该对象的 age，通常会导致程序崩溃。
+
+if (this == nullptr) 虽然在某些情况下看起来能阻止访问，
+但不能让空指针调用成员函数变成合法行为。
+正确做法是在调用成员函数之前检查 p。
+```
+```cpp
+class person{
+public:
+    void show1(){
+        cout<<"1"<<endl;
+    }
+    void showage(){
+        if(this == nullptr){
+            return;//报错原因是因为指针为nullptr，而age属于对象
+        }
+        cout << age << endl;//age等价于this->age
+    }
+    int age=10;
+};
+
+void test(){
+   person *p = nullptr;
+   p->show1();
+   p->showage();
+}
+
+int main(){
+    test();
+}
+//对于空指针，尽量用nullptr。如func(NULL)可能匹配int，而func(nullptr)明确匹配int*
+```
+const修饰成员函数
+```text
+常函数
+    成员函数加const后称之为常函数
+    常含数不可以修改成员属性
+    成员属性声明时加关键字mutable后，在常函数中依然可以修改
+常对象
+    声明对象前加const成为常对象
+    常对象只能调用常函数
+```
+```cpp
+class person{
+public:
+    void showperson()const{
+        //m_a = 10;等价this->m_a=10;
+        //常函数中的this相当于const *person const this(第一个const：不能通过this修改他所指对象的普通成员。第二个const：this自身不能改为指向另一个对象)，不能通过this修改普通成员变量
+        this->m_b = 100;//定义时加mutable即可修改
+        cout<<"1"<<endl;
+    }
+    void func(){
+
+    }
+    int m_a=0;
+    mutable int m_b=0;
+};
+void test1(){
+    person p;
+    p.func();
+    p.showperson();
+}
+//常对象
+void test2(){
+    const person p1;
+    //p1.m_a = 200;常对象不能修改普通的成员变量
+    p1.m_b = 200;//定义时加mutable即可修改
+    
+    p1.showperson();
+    //p1.func();常对象只能调用常函数
+}
+int main(){
+    test1();
+    test2();
+}
 ```
