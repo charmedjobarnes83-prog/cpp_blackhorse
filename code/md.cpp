@@ -2,33 +2,32 @@
 using namespace std;
 #include <string>
 
-class person{
+class Building{
+
+    friend void test1(Building *building);
+    //test1是Building的友元，可以访问Building的私有成员
+
 public:
-    void showperson()const{
-        //m_a = 10;等价this->age=100;this指针不可以修改指针的指向
-        this->m_b = 100;//定义时加mutable即可修改
-        cout<<"1"<<endl;
+    string m_sittingroom;
+    Building(){
+        m_sittingroom = "客厅";
+        m_bedroom = "卧室";
     }
-    void func(){
-        
-    }
-    int m_a=0;
-    mutable int m_b=0;
+private:
+    string m_bedroom;
 };
-void test1(){
-    person p;
-    p.showperson();
+
+
+void test1(Building *building){
+    cout<<"friend正在访问:" << building->m_sittingroom<<endl;
+    cout<<"friend正在访问:" << building->m_bedroom<<endl;
 }
-//常对象
+
+
 void test2(){
-    const person p1;
-    //p1.m_a = 200;常对象不能修改普通的成员变量
-    p1.m_b = 200;
-    
-    p1.showperson();
-    //p1.func();常对象只能调用常函数
+    Building building;
+    test1(&building);
 }
 int main(){
-    test1();
     test2();
 }

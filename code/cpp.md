@@ -15,6 +15,7 @@
 - [类\&对象](#类对象)
   - [封装](#封装)
   - [对象](#对象)
+  - [友元](#友元)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -1396,6 +1397,45 @@ void test2(){
 }
 int main(){
     test1();
+    test2();
+}
+```
+### 友元
+关键字friend
+```text
+全局函数做友元
+类做友元
+成员函数做友元
+```
+全局函数做友元
+```cpp
+class Building{
+
+    friend void test1(Building *building);
+    //test1是Building的友元，可以访问Building的私有成员
+
+public:
+    string m_sittingroom;
+    Building(){
+        m_sittingroom = "客厅";
+        m_bedroom = "卧室";
+    }
+private:
+    string m_bedroom;
+};
+
+
+void test1(Building *building){
+    cout<<"friend正在访问:" << building->m_sittingroom<<endl;
+    cout<<"friend正在访问:" << building->m_bedroom<<endl;
+}
+
+
+void test2(){
+    Building building;
+    test1(&building);
+}
+int main(){
     test2();
 }
 ```
