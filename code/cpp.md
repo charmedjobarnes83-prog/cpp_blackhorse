@@ -16,6 +16,7 @@
   - [封装](#封装)
   - [对象](#对象)
   - [友元](#友元)
+  - [运算符重载](#运算符重载)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -1403,9 +1404,9 @@ int main(){
 ### 友元
 关键字friend
 ```text
-全局函数做友元
-类做友元
-成员函数做友元
+全局函数做友元       friend void test1(Building *building);
+类做友元             friend class goodfriend;
+成员函数做友元       friend void goodfriend::visit();
 ```
 全局函数做友元
 ```cpp
@@ -1439,3 +1440,102 @@ int main(){
     test2();
 }
 ```
+类作友元
+```cpp
+class Building;
+
+class goodfriend{
+public:
+    goodfriend();
+    void visit();
+    Building * building;
+};
+
+class Building{
+    friend class goodfriend;
+    //goodfriend是Building的friend
+public:
+    Building();
+    string m_sittingroom;
+
+private:
+    string m_bedroom;
+};
+//类外写成员函数
+Building::Building(){
+    m_sittingroom = "客厅";
+    m_bedroom = "卧室";
+}
+goodfriend::goodfriend(){
+    //创建building对象
+    building = new Building;
+}
+
+void goodfriend::visit(){
+    cout << "friend正在访问" << building->m_sittingroom << endl;
+    cout << "friend正在访问" << building->m_bedroom << endl;
+}
+
+void test1(){
+    goodfriend g1;
+    //创建一个goodfrined对象，而goodfriend类的构造方法中又创建了building对象，building类的构造方法中给building对象赋初值
+    g1.visit();
+}
+int main(){
+    test1();
+}
+```
+成员函数作友元
+```cpp
+class Building;
+
+class goodfriend{
+public:
+    goodfriend();
+    void visit();//让visit可以访问Building中私有的成员
+    void visit1();//让visit1不可以访问私有成员
+    Building * building;
+};
+
+class Building{
+    friend void goodfriend::visit();
+public:
+    Building();
+    string m_sittingroom;
+
+private:
+    string m_bedroom;
+};
+
+//类外写成员函数
+Building::Building(){
+    m_sittingroom = "客厅";
+    m_bedroom = "卧室";
+}
+goodfriend::goodfriend(){
+    //创建building对象
+    building = new Building;
+}
+
+void goodfriend::visit(){
+    cout << "visit-friend正在访问" << building->m_sittingroom << endl;
+    cout << "visit-friend正在访问" << building->m_bedroom << endl;
+}
+void goodfriend::visit1(){
+    cout << "visit1-friend正在访问" << building->m_sittingroom << endl;
+    //cout << "visit1-friend正在访问" << building->m_bedroom << endl;
+}
+
+void test1(){
+    goodfriend g1;
+    //创建一个goodfrined对象，而goodfriend类的构造方法中又创建了building对象，building类的构造方法中给building对象赋初值
+    g1.visit();
+    g1.visit1();
+}
+int main(){
+    test1();
+}
+```
+### 运算符重载
+ 
+  
