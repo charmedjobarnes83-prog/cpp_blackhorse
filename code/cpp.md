@@ -17,6 +17,10 @@
   - [对象](#对象)
   - [友元](#友元)
   - [运算符重载](#运算符重载)
+    - [加号运算符重载](#加号运算符重载)
+    - [左移运算符重载](#左移运算符重载)
+    - [递增运算符重载](#递增运算符重载)
+    - [赋值运算符重载](#赋值运算符重载)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -1537,5 +1541,157 @@ int main(){
 }
 ```
 ### 运算符重载
- 
-  
+#### 加号运算符重载
+```text
+通过局部函数或者全局函数重载加号运算符
+局部函数意思就是在类内定义一个函数，然后通过对象调用，如p1.test(p2)
+全局函数是在类外定义一个函数，直接调用，如tese(p1,p2)
+
+运算符重载的意义:给运算符号一些新的定义，如person p3 = p1 + p2;
+```
+```cpp
+class person {
+public:
+    int m_a;
+    int m_b;
+    person add1(person& p1) {//此处的p1为引用而非指针，指针是person *p1,故而后续引用数据采用p1.m_a而非p1->m_a
+        person temp;
+        temp.m_a = this->m_a + p1.m_a;
+        temp.m_b = this->m_b + p1.m_b;
+        return temp;
+    }
+};
+person add2(person& p1, person& p2) {
+    person temp;
+    temp.m_a = p2.m_a + p1.m_a;
+    temp.m_b = p2.m_b + p1.m_b;
+    return temp;
+}
+void test1() {
+    person p1;
+    p1.m_a = 10;
+    p1.m_b = 1;
+    person p2;
+    p2.m_a = 20;
+    p2.m_b = 2;
+    person p3;
+    person p4;
+    p3 = p1.add1(p2);
+    p4 = add2(p1, p2);
+    cout << p3.m_a << " " << p3.m_b << endl;
+    cout << p4.m_a << " " << p4.m_b << endl;
+}
+int main() {
+    test1();
+    return 0;
+}
+```
+改进版，用系统自带(operator+())
+```cpp
+//将重载的函数名改为
+person operator+(person &p1){}
+person operator(person &p1,person &p2){}
+//这样就可直接写
+person p3 = p1 + p2;//本质是p3 = operator+(p1,p2)/p3 = p1.operator(p2)
+
+//改成
+person operator(person &p1,num)
+//即可实现
+p3 = p1 + num;
+```
+#### 左移运算符重载
+一般采用全局函数进行重载，重载左移运算符可以实现输出自定义数据类型
+```cpp
+class person{
+friend ostream & operator<<(ostream &out,person &p);//声明友元函数，以访问private成员变量
+public:
+        void set(int a,int b){
+            m_a = a;
+            m_b = b;
+        }    
+private:
+        int m_a;
+        int m_b;
+};
+
+ostream & operator<<(ostream &out,person &p){//简化operator<<(cout，p)即cout<<p
+    //cout是输出流对象(ostream对象)，p是person类对象
+    out << "m_a:" << p.m_a << "m_b:" << p.m_b << endl;
+    return out;//返回值处加&表示返回的是输出流对象本身，而不是新建一个ostream对象
+    //若返回值是void，则无法实现cout<<p1<<endl的连续输出
+}
+
+int main(){
+    person p1;
+    p1.set(10,20);
+    cout << p1 << "hello" << endl; 
+    //operator<<(cout,p1); 二者均可
+}
+
+```
+#### 递增运算符重载
+```text
+前置递增返回引用，后置递增返回值
+```
+```cpp
+class person{
+friend ostream & operator<<(ostream &out,const person &p);//声明友元函数
+public:
+        person(){
+            m_num = 0;
+        }  
+//重载前置++运算符
+        person &operator++(){//重载前置++运算符
+            //先++运算
+            m_num++;
+            //再将自身返回
+            return *this;
+        }
+//重载后置++运算符
+        person operator++(int){//此处的形参int代表占位参数，用于区分前置和后置递增
+           person temp = *this;//先将当前对象的值保存到临时对象中
+           m_num++;//再将当前对象的值加1
+           return temp;//返回临时对象
+        }
+private:
+        int m_num;
+        
+};
+
+ostream & operator<<(ostream &out,const person &p){//const person &p表示传入的person对象是只读的，不能修改其成员变量,且可以接收临时对象和普通对象
+    //简化operator<<(cout，p)即cout<<p
+    //cout是输出流对象(ostream对象)，p是person类对象
+    out << "m_num:" << p.m_num << endl;
+    return out;//返回值处加&表示返回的是输出流对象本身，而不是新建一个ostream对象
+    //若返回值是void，则无法实现cout<<p1<<endl的连续输出
+}
+void test1(){
+    person p1;
+    cout << ++(++p1) << endl;
+    cout << p1 << endl;
+    //若person operator++()，则输出为一个2一个1，每次++运算都会返回一个新的person对象，p1的m_num值不会改变
+    //若person &operator++()，则输出为一个2一个2，每次++运算都会返回自身的引用，p1的m_num值会改变
+    
+}
+void test2(){
+    person p2;
+    cout << (p2++)++ << endl;
+    cout << p2 << endl;
+}
+int main(){
+    //test1();
+    test2();
+
+    return 0;
+}
+```
+#### 赋值运算符重载
+```text
+cpp编译器给一个类至少添加4个函数
+1默认构造函数(无参，函数体为空)
+2默认析构函数(无参，函数体为空)
+3默认拷贝构造函数，对属性进行值拷贝
+4赋值运算符operator=，对属性进行值拷贝
+
+若类中有属性指向堆区，做赋值操作时也会出现深浅拷贝问题
+```
