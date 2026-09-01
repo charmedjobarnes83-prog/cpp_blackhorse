@@ -3,51 +3,38 @@ using namespace std;
 #include <string>
 
 
-class Building;
-
-class goodfriend{
+class person {
 public:
-    goodfriend();
-    void visit();//让visit可以访问Building中私有的成员
-    void visit1();//让visit1不可以访问私有成员
-    Building * building;
+    int m_a;
+    int m_b;
+    //person operator+(person& p1) {
+    //    person temp;
+    //    temp.m_a = this->m_a + p1.m_a;
+     //   temp.m_b = this->m_b + p1.m_b;
+     //   return temp;
+    //}
 };
-
-class Building{
-    friend void goodfriend::visit();
-public:
-    Building();
-    string m_sittingroom;
-
-private:
-    string m_bedroom;
-};
-
-//类外写成员函数
-Building::Building(){
-    m_sittingroom = "客厅";
-    m_bedroom = "卧室";
+person operator+(person& p1, person& p2) {
+    person temp;
+    temp.m_a = p2.m_a + p1.m_a;
+    temp.m_b = p2.m_b + p1.m_b;
+    return temp;
 }
-goodfriend::goodfriend(){
-    //创建building对象
-    building = new Building;
+void test1() {
+    person p1;
+    p1.m_a = 10;
+    p1.m_b = 1;
+    person p2;
+    p2.m_a = 20;
+    p2.m_b = 2;
+    person p3;
+    person p4;
+    p3 = p1 + p2;
+    p4 = p1 + p2;
+    cout << p3.m_a << " " << p3.m_b << endl;
+    cout << p4.m_a << " " << p4.m_b << endl;
 }
-
-void goodfriend::visit(){
-    cout << "visit-friend正在访问" << building->m_sittingroom << endl;
-    cout << "visit-friend正在访问" << building->m_bedroom << endl;
-}
-void goodfriend::visit1(){
-    cout << "visit1-friend正在访问" << building->m_sittingroom << endl;
-    //cout << "visit1-friend正在访问" << building->m_bedroom << endl;
-}
-
-void test1(){
-    goodfriend g1;
-    //创建一个goodfrined对象，而goodfriend类的构造方法中又创建了building对象，building类的构造方法中给building对象赋初值
-    g1.visit();
-    g1.visit1();
-}
-int main(){
+int main() {
     test1();
+    return 0;
 }

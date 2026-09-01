@@ -17,6 +17,7 @@
   - [对象](#对象)
   - [友元](#友元)
   - [运算符重载](#运算符重载)
+    - [加号运算符重载](#加号运算符重载)
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -1537,5 +1538,62 @@ int main(){
 }
 ```
 ### 运算符重载
- 
+#### 加号运算符重载
+```text
+通过局部函数或者全局函数重载加号运算符
+局部函数意思就是在类内定义一个函数，然后通过对象调用，如p1.test(p2)
+全局函数是在类外定义一个函数，直接调用，如tese(p1,p2)
+
+运算符重载的意义:给运算符号一些新的定义，如person p3 = p1 + p2;
+```
+```cpp
+class person {
+public:
+    int m_a;
+    int m_b;
+    person add1(person& p1) {//此处的p1为引用而非指针，指针是person *p1,故而后续引用数据采用p1.m_a而非p1->m_a
+        person temp;
+        temp.m_a = this->m_a + p1.m_a;
+        temp.m_b = this->m_b + p1.m_b;
+        return temp;
+    }
+};
+person add2(person& p1, person& p2) {
+    person temp;
+    temp.m_a = p2.m_a + p1.m_a;
+    temp.m_b = p2.m_b + p1.m_b;
+    return temp;
+}
+void test1() {
+    person p1;
+    p1.m_a = 10;
+    p1.m_b = 1;
+    person p2;
+    p2.m_a = 20;
+    p2.m_b = 2;
+    person p3;
+    person p4;
+    p3 = p1.add1(p2);
+    p4 = add2(p1, p2);
+    cout << p3.m_a << " " << p3.m_b << endl;
+    cout << p4.m_a << " " << p4.m_b << endl;
+}
+int main() {
+    test1();
+    return 0;
+}
+```
+改进版，用系统自带(operator+())
+```cpp
+//将重载的函数名改为
+person operator+(person &p1){}
+person operator(person &p1,person &p2){}
+//这样就可直接写
+person p3 = p1 + p2;//本质是p3 = operator+(p1,p2)/p3 = p1.operator(p2)
+
+//改成
+person operator(person &p1,num)
+//即可实现
+p3 = p1 + num;
+```
   
