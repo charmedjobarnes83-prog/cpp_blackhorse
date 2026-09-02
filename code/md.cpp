@@ -2,39 +2,63 @@
 using namespace std;
 #include <string>
 
-class mprint {
-public:
-    void operator()(string test) {//重载()运算符
-        cout << test << endl;
-    }
-};//仿函数很灵活，没有固定写法
+class father{
+    public:
+        int a=10;
+    protected:
+        int b=20;
+    private:
+        int c=30;
+};
 
-class Madd {
-public:
-    int operator()(int a, int b) {//重载()运算符
-        return a + b;
-    }
-};//仿函数很灵活，没有固定写法
-
-void m_print(string test) {
-    cout << test << endl;
+class son1: public father{
+    public:
+        void show(){
+            cout << "a = " << a << endl;
+            cout << "b = " << b << endl;
+            // cout << "c = " << c << endl; // private成员不能在子类中访问
+        }
+};
+class son2: protected father{
+    public:
+        void show(){
+            cout << "a = " << a << endl;
+            cout << "b = " << b << endl;
+            // cout << "c = " << c << endl; // private成员不能在子类中访问
+        }
+};
+class son3: private father{
+    public:
+        void show(){
+            cout << "a = " << a << endl;
+            cout << "b = " << b << endl;
+            // cout << "c = " << c << endl; // private成员不能在子类中访问
+        }
+};
+void test(){
+    son1 s1;
+    son2 s2;
+    son3 s3;
+    s1.show();
+    s2.show();
+    s3.show();
 }
+void test1(){
+    son1 s1;
+    son2 s2;
+    son3 s3;
+    s1.a = 100; 
+    //s1.b = 200;protected成员不能在类外访问
+    //s2.a = 100;protected成员不能在类外访问
+    //s2.b = 200;protected成员不能在类外访问
+    //s3.a = 100;private成员不能在类外访问 
+    //s3.b = 200;private成员不能在类外访问
+    cout << "s1.a = " << s1.a << endl;
 
-void test1() {
-    mprint mprint;
-    mprint("Hello World");//调用运算符重载，和函数调用非常像，又称仿函数
-    m_print("Hello World");//函数
 }
-
-void test2() {
-    Madd madd;
-    cout << madd(1, 2) << endl;//仿函数
-
-    //匿名函数对象。匿名对象：当前行执行完立即被释放
-    cout << Madd()(3, 4) << endl;
-}
-int main() {
+int main(){
+    test();
     test1();
-    test2();
+    
     return 0;
 }

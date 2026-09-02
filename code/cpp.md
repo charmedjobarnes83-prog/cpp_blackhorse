@@ -23,6 +23,9 @@
     - [赋值运算符重载](#赋值运算符重载)
     - [关系运算符重载](#关系运算符重载)
     - [函数调用运算符重载(仿函数)](#函数调用运算符重载仿函数)
+  - [继承](#继承)
+    - [继承基本语法](#继承基本语法)
+    - [继承方式](#继承方式)
 >>>>>>> 66ca5a563298b326a91148b14f89b66cf3728062
 
 ```text
@@ -1606,7 +1609,7 @@ p3 = p1 + num;
   
 =======
 #### 左移运算符重载
-一般采用全局函数进行重载，重载左移运算符可以实现输出自定义数据类型
+    一般采用全局函数进行重载，重载左移运算符可以实现输出自定义数据类型
 ```cpp
 class person{
 friend ostream & operator<<(ostream &out,person &p);//声明友元函数，以访问private成员变量
@@ -1753,7 +1756,7 @@ int main() {
 }
 ```
 #### 关系运算符重载
-用于对比自定义数据类型
+    用于对比自定义数据类型
 ```cpp
 class person {
 public:
@@ -1831,6 +1834,126 @@ void test2() {
 int main() {
     test1();
     test2();
+    return 0;
+}
+```
+### 继承
+#### 继承基本语法
+    class 子类:继承方式 父类
+```text
+减少重复代码
+子类又称派生类
+父类又称基类
+```
+```cpp
+class father{
+
+};
+class son:public father{
+
+};
+```
+#### 继承方式
+```text
+公共继承
+保护继承
+私有继承
+
+public 公共--成员 类内可以访问，类外也可以访问
+private 私有--成员 类内可以访问，类外不可以访问(子类不可以访问父类中的private内容)
+protected 保护--成员 类内可以访问，类外不可以访问(子类可以访问父类中的protected内容)
+```
+    伪代码示例
+```cpp
+class father{
+    public:
+        int a;
+    protected:
+        int b;
+    private:
+        int c;
+};
+
+class son1:public father{//public和protected保持不变
+    public:
+        int a;
+    protected:
+        int b;
+    c无法访问
+}
+class son2:protected father{//publich和protected均变为protected
+    protected:
+        int a;
+        int b;
+    c无法访问
+}
+class son3:private father{//public和protected均变为private
+    private:
+        int a;
+        int b;
+    c无法访问
+}
+
+```
+    代码示例
+```cpp
+class father{
+    public:
+        int a=10;
+    protected:
+        int b=20;
+    private:
+        int c=30;
+};
+
+class son1: public father{
+    public:
+        void show(){
+            cout << "a = " << a << endl;
+            cout << "b = " << b << endl;
+            // cout << "c = " << c << endl; // private成员不能在子类中访问
+        }
+};
+class son2: protected father{
+    public:
+        void show(){
+            cout << "a = " << a << endl;
+            cout << "b = " << b << endl;
+            // cout << "c = " << c << endl; // private成员不能在子类中访问
+        }
+};
+class son3: private father{
+    public:
+        void show(){
+            cout << "a = " << a << endl;
+            cout << "b = " << b << endl;
+            // cout << "c = " << c << endl; // private成员不能在子类中访问
+        }
+};
+void test(){
+    son1 s1;
+    son2 s2;
+    son3 s3;
+    s1.show();
+    s2.show();
+    s3.show();
+}
+void test1(){
+    son1 s1;
+    son2 s2;
+    son3 s3;
+    s1.a = 100; 
+    //s1.b = 200;protected成员不能在类外访问
+    //s2.a = 100;protected成员不能在类外访问
+    //s2.b = 200;protected成员不能在类外访问
+    //s3.a = 100;private成员不能在类外访问 
+    //s3.b = 200;private成员不能在类外访问
+    cout << "s1.a = " << s1.a << endl;
+
+}
+int main(){
+    test();
+    test1();
     return 0;
 }
 ```
