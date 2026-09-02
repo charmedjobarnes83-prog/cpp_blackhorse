@@ -15,6 +15,14 @@
 - [类\&对象](#类对象)
   - [封装](#封装)
   - [对象](#对象)
+    - [构造函数与析构函数](#构造函数与析构函数)
+    - [初始化列表:构造函数()：属性1(值1),属性2(值2)...{}](#初始化列表构造函数属性1值1属性2值2)
+    - [类对象作为类成员](#类对象作为类成员)
+    - [静态成员](#静态成员)
+    - [成员函数和成员变量是分开存储的](#成员函数和成员变量是分开存储的)
+    - [this指针(解决名称冲突/返回对象本身)](#this指针解决名称冲突返回对象本身)
+    - [空指针调用成员函数](#空指针调用成员函数)
+    - [const修饰成员函数](#const修饰成员函数)
   - [友元](#友元)
   - [运算符重载](#运算符重载)
     - [加号运算符重载](#加号运算符重载)
@@ -26,6 +34,12 @@
   - [继承](#继承)
     - [继承基本语法](#继承基本语法)
     - [继承方式](#继承方式)
+    - [继承中的对象模型](#继承中的对象模型)
+    - [构造和析构顺序](#构造和析构顺序)
+    - [同名成员处理](#同名成员处理)
+    - [同名静态成员处理](#同名静态成员处理)
+    - [多继承](#多继承)
+    - [菱形继承](#菱形继承)
 >>>>>>> 66ca5a563298b326a91148b14f89b66cf3728062
 
 ```text
@@ -904,7 +918,8 @@ int main() {
  [package_test1.cpp 源码](./package_test1.cpp)
 
  ### 对象
- 构造函数
+ #### 构造函数与析构函数
+    构造函数
  ```text
 类名(){}
 没有返回值也不写void
@@ -912,7 +927,7 @@ int main() {
 构造函数可以有参数因此可以发生重载
 程序在调用对象时会自动调用构造，无需手动调用，且只会调用一次
  ```
- 析构函数
+    析构函数
  ```text
 ~类名(){}
 没有返回值也不写void
@@ -942,12 +957,12 @@ int main() {
     return 0;
 }
 ```
-构造函数的分类
+    构造函数的分类
 ```text
 按参数分类：有参构造和无参构造
 按类型分类：普通构造和拷贝构造
 ```
-三种调用方式
+    三种调用方式
 ```texts
 括号法
 显示法
@@ -1004,19 +1019,19 @@ int main() {
 }
 
 ```
-拷贝构造函数调用时机
+    拷贝构造函数调用时机
 ```text
 使用一个已经创建完毕的对象来初始化一个新的对象
 值传递的方式给函数参数传值
 以值方式返回局部对象
 ```
-构造函数调用规则
+    构造函数调用规则
 ```text
 创建一个类，编译器自动生成三个函数(默认构造函数/析构函数/拷贝构造函数)
 若用户自定义有参构造函数，c++不再提供默认无参构造函数，但会提供默认拷贝构造
 若用户自定义拷贝构造函数，c++不再提供其他构造函数
 ```
-深拷贝和浅拷贝(面试常问)
+    深拷贝和浅拷贝(面试常问)
 ```text
 浅拷贝：简单的赋值拷贝操作(复制地址)
 深拷贝：在堆区重新申请空间，进行拷贝操作(复制地址指向的数据，并创建新的内存)
@@ -1086,7 +1101,7 @@ public:
     int *m_height;
 };  
 ```
-初始化列表:构造函数()：属性1(值1),属性2(值2)...{}
+#### 初始化列表:构造函数()：属性1(值1),属性2(值2)...{}
 ```cpp
 class Person{
 public:
@@ -1128,7 +1143,7 @@ int main(){
    test1();
 }
 ```
-类对象作为类成员
+#### 类对象作为类成员
 ```cpp
 //先构造内部的类对象，即先构造phone对象，后构造person对象
 //栈——>先进后出。先释放person对象，在释放phone对象
@@ -1166,7 +1181,7 @@ int main(){
     test1();
 }
 ```
-静态成员
+#### 静态成员
 ```text
 静态成员变量
     所有对象共享同一份数据
@@ -1225,7 +1240,7 @@ int main(){
     test3();
 }
 ```
-成员函数和成员变量是分开存储的
+#### 成员函数和成员变量是分开存储的
 ```cpp
 class Person{
 
@@ -1249,7 +1264,7 @@ int main(){
     test1();
 }
 ```
-this指针(解决名称冲突/返回对象本身)
+#### this指针(解决名称冲突/返回对象本身)
 ```cpp
 //错误示范
 class person{
@@ -1322,7 +1337,7 @@ int main(){
 }
 
 ```
-空指针调用成员函数
+#### 空指针调用成员函数
 ```text
 空指针可以访问成员函数
 但涉及到this时，会报错
@@ -1367,7 +1382,7 @@ int main(){
 }
 //对于空指针，尽量用nullptr。如func(NULL)可能匹配int，而func(nullptr)明确匹配int*
 ```
-const修饰成员函数
+#### const修饰成员函数
 ```text
 常函数
     成员函数加const后称之为常函数
@@ -1957,3 +1972,203 @@ int main(){
     return 0;
 }
 ```
+#### 继承中的对象模型
+```cpp
+class father {
+public:
+    int a = 10;
+protected:
+    int b = 20;
+private:
+    int c = 30;
+};
+
+class son :public father {
+
+};
+
+void test() {
+    son s1;
+    cout << sizeof(s1) << endl;
+    //sizeof(s1) = 12.
+    //父类中所有非静态成员属性都会被子类继承下去
+    //父类中的private成员属性，也被继承了，但是被编译器隐藏了，因此访问不到
+}
+int main() {
+    test();
+    return 0;
+}
+//即s1下有三个变量，a,b,c
+```
+#### 构造和析构顺序
+类似内容[跳转-类对象作为类成员](#类对象作为类成员)
+```text
+先有爹后有儿子
+父类构造-子类构造-子类析构-父类析构
+```
+```cpp
+class father {
+public:
+    father() {
+        cout << "father constructor" << endl;
+    }
+    ~father() {
+        cout << "father destructor" << endl;
+    }
+};
+class son :public father {
+public:
+    son() {
+        cout << "son constructor" << endl;
+    }
+    ~son() {
+        cout << "son destructor" << endl;
+    }
+};
+void test() {
+    son s1;
+}
+int main() {
+    test();
+    return 0;
+}
+```
+#### 同名成员处理
+```text
+当子类和父类中出现同名的成员
+访问子类同名成员：直接访问即可
+访问父类同名成员：需要加作用域 s1.father::a   s1.father::func()
+
+成员变量或者成员函数同理
+```
+```cpp
+class father {
+public:
+    int a = 10;
+    void func() {
+        cout << "111" << endl;
+    }
+    void func(int a) {
+        cout << "333" << endl;
+    }
+};
+class son :public father {
+public:
+    int a = 100;
+    void func() {
+        cout << "222" << endl;
+    }
+
+};
+void test() {
+    son s1;
+    cout << s1.a << endl;
+    cout << s1.father::a << endl;
+    s1.func();
+    s1.father::func();
+    s1.father::func(1);
+    //不可s1.func(1) 因为子类出现同名函数时，会覆盖掉父类中的同名函数，要想调用必须加作用域
+}
+int main() {
+    test();
+}
+```
+#### 同名静态成员处理
+    与同名成员类似，只是多了通过类名访问
+```cpp
+class father {
+public:
+    static int a;
+    static void func() {
+        cout << "father-func" << endl;
+    }
+};
+class son :public father {
+public:
+    static int a;
+    static void func() {
+        cout << "son-func" << endl;
+    }
+};
+
+int father::a = 10;
+int son::a = 20;
+
+void test() {
+    son s1;
+    //通过对象访问
+    cout << s1.father::a << endl;
+    cout << s1.a << endl;
+    s1.father::func();
+    s1.func();
+
+    //通过类名访问
+    cout << father::a << endl;
+    cout << son::a << endl;
+    father::func();
+    son::func();
+    //通过子类与父类关系，用类名访问
+    //第一个::代表通过类名方式访问，第二个::代表访问父类作用域下的成员变量
+    cout << son::father::a << endl;
+    son::father::func();
+}
+int main() {
+    test();
+}
+```
+#### 多继承
+    class 子类:继承方式 父类1,继承方式 父类2.......
+```text
+当多个父类中出现了同名的成员变量，调用时需要加作用域    
+```
+#### 菱形继承
+    动物是羊 驼的父类，羊驼同时继承羊 驼
+```text
+动物的age变量，传给羊和驼，但是羊驼又同时继承了这两个类的age，事实上，羊驼只需要一个age.利用虚继承解决(类似静态变量)
+其中animal称为虚基类
+类似于静态变量，age只剩一个，因此无论是s1.age/s1.sheep::age/s1.tup::age，指的都是同一个age(指向同一个内存)
+从sheep和tuo下继承来的是vbptr(虚基类指针 virtual base ptr),指向vbtable(虚基类表)
+```
+```text
+普通菱形继承：
+每个 sheeptuo 对象中有两份 animal::age
+
+虚继承：
+每个 sheeptuo 对象中只有一份自己的 animal::age
+
+static：
+整个程序中所有 animal 相关对象共同使用一份 age
+
+静态变量并不能代替虚继承解决问题，因为所有对象共用这一个信息，而虚继承能实现每个对象有自己特有的信息。
+静态变量只能解决age重复的问题
+```
+```cpp
+class animal {
+public:
+    int age;
+};
+
+class sheep :virtual public animal {
+
+};
+class tuo :virtual public animal {
+
+};
+
+class sheeptuo :public sheep, public tuo {
+
+};
+void test() {
+    sheeptuo s1;
+    s1.sheep::age = 10;
+    s1.tuo::age = 20;
+    cout << s1.sheep::age << endl;
+    cout << s1.tuo::age << endl;
+    cout << s1.age << endl;//虚继承特有
+
+}
+int main() {
+    test();
+}
+```
+
