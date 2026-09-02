@@ -2,39 +2,39 @@
 using namespace std;
 #include <string>
 
-
-class person {
+class mprint {
 public:
-    int m_a;
-    int m_b;
-    //person operator+(person& p1) {
-    //    person temp;
-    //    temp.m_a = this->m_a + p1.m_a;
-     //   temp.m_b = this->m_b + p1.m_b;
-     //   return temp;
-    //}
-};
-person operator+(person& p1, person& p2) {
-    person temp;
-    temp.m_a = p2.m_a + p1.m_a;
-    temp.m_b = p2.m_b + p1.m_b;
-    return temp;
+    void operator()(string test) {//重载()运算符
+        cout << test << endl;
+    }
+};//仿函数很灵活，没有固定写法
+
+class Madd {
+public:
+    int operator()(int a, int b) {//重载()运算符
+        return a + b;
+    }
+};//仿函数很灵活，没有固定写法
+
+void m_print(string test) {
+    cout << test << endl;
 }
+
 void test1() {
-    person p1;
-    p1.m_a = 10;
-    p1.m_b = 1;
-    person p2;
-    p2.m_a = 20;
-    p2.m_b = 2;
-    person p3;
-    person p4;
-    p3 = p1 + p2;
-    p4 = p1 + p2;
-    cout << p3.m_a << " " << p3.m_b << endl;
-    cout << p4.m_a << " " << p4.m_b << endl;
+    mprint mprint;
+    mprint("Hello World");//调用运算符重载，和函数调用非常像，又称仿函数
+    m_print("Hello World");//函数
+}
+
+void test2() {
+    Madd madd;
+    cout << madd(1, 2) << endl;//仿函数
+
+    //匿名函数对象。匿名对象：当前行执行完立即被释放
+    cout << Madd()(3, 4) << endl;
 }
 int main() {
     test1();
+    test2();
     return 0;
 }

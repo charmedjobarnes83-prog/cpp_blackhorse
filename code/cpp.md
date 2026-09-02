@@ -18,6 +18,12 @@
   - [友元](#友元)
   - [运算符重载](#运算符重载)
     - [加号运算符重载](#加号运算符重载)
+    - [左移运算符重载](#左移运算符重载)
+    - [递增运算符重载](#递增运算符重载)
+    - [赋值运算符重载](#赋值运算符重载)
+    - [关系运算符重载](#关系运算符重载)
+    - [函数调用运算符重载(仿函数)](#函数调用运算符重载仿函数)
+>>>>>>> 66ca5a563298b326a91148b14f89b66cf3728062
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -1596,4 +1602,235 @@ person operator(person &p1,num)
 //即可实现
 p3 = p1 + num;
 ```
+<<<<<<< HEAD        
   
+=======
+#### 左移运算符重载
+一般采用全局函数进行重载，重载左移运算符可以实现输出自定义数据类型
+```cpp
+class person{
+friend ostream & operator<<(ostream &out,person &p);//声明友元函数，以访问private成员变量
+public:
+        void set(int a,int b){
+            m_a = a;
+            m_b = b;
+        }    
+private:
+        int m_a;
+        int m_b;
+};
+
+ostream & operator<<(ostream &out,person &p){//简化operator<<(cout，p)即cout<<p
+    //cout是输出流对象(ostream对象)，p是person类对象
+    out << "m_a:" << p.m_a << "m_b:" << p.m_b << endl;
+    return out;//返回值处加&表示返回的是输出流对象本身，而不是新建一个ostream对象
+    //若返回值是void，则无法实现cout<<p1<<endl的连续输出
+}
+
+int main(){
+    person p1;
+    p1.set(10,20);
+    cout << p1 << "hello" << endl; 
+    //operator<<(cout,p1); 二者均可
+}
+
+```
+#### 递增运算符重载
+```text
+前置递增返回引用，后置递增返回值
+```
+```cpp
+class person{
+friend ostream & operator<<(ostream &out,const person &p);//声明友元函数
+public:
+        person(){
+            m_num = 0;
+        }  
+//重载前置++运算符
+        person &operator++(){//重载前置++运算符
+            //先++运算
+            m_num++;
+            //再将自身返回
+            return *this;
+        }
+//重载后置++运算符
+        person operator++(int){//此处的形参int代表占位参数，用于区分前置和后置递增
+           person temp = *this;//先将当前对象的值保存到临时对象中
+           m_num++;//再将当前对象的值加1
+           return temp;//返回临时对象
+        }
+private:
+        int m_num;
+        
+};
+
+ostream & operator<<(ostream &out,const person &p){//const person &p表示传入的person对象是只读的，不能修改其成员变量,且可以接收临时对象和普通对象
+    //简化operator<<(cout，p)即cout<<p
+    //cout是输出流对象(ostream对象)，p是person类对象
+    out << "m_num:" << p.m_num << endl;
+    return out;//返回值处加&表示返回的是输出流对象本身，而不是新建一个ostream对象
+    //若返回值是void，则无法实现cout<<p1<<endl的连续输出
+}
+void test1(){
+    person p1;
+    cout << ++(++p1) << endl;
+    cout << p1 << endl;
+    //若person operator++()，则输出为一个2一个1，每次++运算都会返回一个新的person对象，p1的m_num值不会改变
+    //若person &operator++()，则输出为一个2一个2，每次++运算都会返回自身的引用，p1的m_num值会改变
+    
+}
+void test2(){
+    person p2;
+    cout << (p2++)++ << endl;
+    cout << p2 << endl;
+}
+int main(){
+    //test1();
+    test2();
+
+    return 0;
+}
+```
+#### 赋值运算符重载
+```text
+cpp编译器给一个类至少添加4个函数
+1默认构造函数(无参，函数体为空)
+2默认析构函数(无参，函数体为空)
+3默认拷贝构造函数，对属性进行值拷贝
+4赋值运算符operator=，对属性进行值拷贝
+
+若类中有属性指向堆区，做赋值操作时也会出现深浅拷贝问题，导致堆区内存重复释放
+编译器默认提供的=是浅拷贝操作，所以需要重载=，加入深拷贝
+```
+```cpp
+class person {
+public:
+    person(int age) {
+        my_age = new int(age);
+    }
+    ~person() {
+        if (my_age != nullptr) {
+            delete my_age;
+            my_age = nullptr;
+        }
+    }
+    person& operator=(person& p) {//若为person operator=(person& p),则是返回值，相当于按照自身调用拷贝构造函数创建一个新的副本，返回引用才是返回真正的自身
+        //编译器提供浅拷贝m_age = p.my_age;
+
+        //应该先判断是否有属性在堆区，如果有先释放干净，然后再进行深拷贝
+        if (my_age != nullptr) {
+            delete my_age;
+            my_age = nullptr;
+        }    
+        //深拷贝
+        my_age = new int(*p.my_age);
+
+        return *this;
+
+    }
+
+    int* my_age;
+};
+
+void test1() {
+    person p1(18);
+    person p2(20);
+    person p3(30);
+    //由于构造函数的存在，会执行三次new int,得到三块独立的内存分别用于存放 18 20 30
+    //但由于p1 p2 p3是局部对象，通常位于栈上，
+    //后续进行深拷贝，释放p2指向20的内存，新建一个内存空间，用于保存p2的18，p3同理，最后三个值都是18，但拥有三块独立的内存空间
+    
+    p2 = p1;
+    p3 = p2 = p1;//此代码要求必须返回为person的引用，否则无法连续调用“ = ”
+    cout << "p1 age: " << *p1.my_age << endl;
+    cout << "p2 age: " << *p2.my_age << endl;
+    cout << "p3 age: " << *p3.my_age << endl;
+}
+
+int main() {
+    test1();
+    return 0;
+}
+```
+#### 关系运算符重载
+用于对比自定义数据类型
+```cpp
+class person {
+public:
+    person(string name, int age) {
+        m_name = name;
+        m_age = age;
+    }
+
+    //重载==运算符
+    bool operator==(person& p) {
+        if (this->m_name == p.m_name && this->m_age == p.m_age) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    int m_age;
+    string m_name;
+};
+
+void test1() {
+    person p1("mike", 18);
+    person p2("mike", 19);
+    if (p1 == p2) {
+        cout << "p1==p2" << endl;
+    }
+    else {
+        cout << "p1!=p2" << endl;
+    }
+}
+
+int main() {
+    test1();
+    return 0;
+}
+```
+#### 函数调用运算符重载(仿函数)
+```text
+由于重载后的方式非常像函数的调用，因此也成为仿函数
+仿函数没有固定写法，非常灵活
+```
+```cpp
+class mprint {
+public:
+    void operator()(string test) {//重载()运算符
+        cout << test << endl;
+    }
+};//仿函数很灵活，没有固定写法
+
+class Madd {
+public:
+    int operator()(int a, int b) {//重载()运算符
+        return a + b;
+    }
+};//仿函数很灵活，没有固定写法
+
+void m_print(string test) {
+    cout << test << endl;
+}
+
+void test1() {
+    mprint mprint;
+    mprint("Hello World");//调用运算符重载，和函数调用非常像，又称仿函数
+    m_print("Hello World");//函数
+}
+
+void test2() {
+    Madd madd;
+    cout << madd(1, 2) << endl;//仿函数
+
+    //Madd()(3,4)为匿名函数对象。匿名对象：当前行执行完立即被释放
+    cout << Madd()(3, 4) << endl;
+}
+int main() {
+    test1();
+    test2();
+    return 0;
+}
+```
