@@ -40,6 +40,12 @@
     - [同名静态成员处理](#同名静态成员处理)
     - [多继承](#多继承)
     - [菱形继承](#菱形继承)
+  - [多态](#多态)
+    - [一：概念及语法](#一概念及语法)
+    - [二：多态原理](#二多态原理)
+    - [三：多态案列](#三多态案列)
+    - [四：纯虚函数和抽象类](#四纯虚函数和抽象类)
+    - [五：虚析构和纯虚析构](#五虚析构和纯虚析构)
 >>>>>>> 66ca5a563298b326a91148b14f89b66cf3728062
 
 ```text
@@ -2171,4 +2177,208 @@ int main() {
     test();
 }
 ```
+### 多态
+#### 一：概念及语法
+    多态是cpp面向对象三大特性之一
+```text
+分类
+静态多态：函数重载和运算符重载属于静态多态，复用函数名
+动态多态：派生类和虚函数实现运行时多态
 
+区别
+静态多态的函数地址早绑定-编译阶段确定函数地址
+动态多态的函数地址晚绑定-运行阶段确定函数地址
+```
+```text
+重写函数
+    函数返回值类型，函数名，参数列表完全相同
+    仅函数体不同
+    与函数重载作区分
+```
+```cpp
+class Animal {
+public:
+    virtual void speak() {
+        cout << "animal-speak" << endl;
+    }
+};
+class Cat :public Animal {
+public:
+    void speak() {
+        cout << "miao" << endl;
+    }
+};
+class Dog :public Animal {
+public:
+    void speak() {
+        cout << "wang" << endl;
+    }
+};
+//地址早绑定，在编译阶段确定函数地址
+//想要让猫类运行dospeak函数，利用动态多态，函数地址晚绑定
+//在函数名前加一个virtual即可   virtual void speak() 
+void dospeak(Animal& animal) {//引用传递，若为值传递，则会失去多态
+    animal.speak();
+}
+//动态多态满足条件
+//    1有继承关系
+//    2子类重写父类虚函数
+
+//动态多态的使用：父类的指针或引用，执行子类对象 Animal animal = cat,切记不要使用值传递
+//任何相关的传递都要考虑是用值传递还是引用传递还是地址传递
+void test() {
+    Cat cat;
+    dospeak(cat);
+    Dog dog;
+    dospeak(dog);
+}
+int main() {
+    test();
+}
+```
+#### 二：多态原理
+```cpp
+class Animal{
+public:
+    void speak(){
+        pass;
+    }
+};
+//sizeof(Animal) = 1
+
+class Animal{
+public:
+    virtual void speak(){//虚函数
+        pass;
+    }
+};
+//sizeof(Animal) = 8 多了一个虚指针，在64位系统中大小为8
+```
+
+子类没有重写继承的虚函数时：
+```text
+        Animal 的虚函数表：
+        └── speak → Animal::speak
+
+        Cat 的虚函数表：
+        └── speak → Animal::speak
+```
+虽然对象的实际类型是cat，但cat没有提供自己的实现，所以虚函数表中的speak项目仍指向Animal::speak()
+```text
+    Cat cat;
+    Animal& animal = cat;
+    animal.speak();
+实际调用的是：
+    Animal::speak()
+```
+子类重写继承的虚函数时：
+```text
+        Animal 的虚函数表：
+        └── speak → Animal::speak
+
+        Cat 的虚函数表：
+        └── speak → Cat::speak
+```
+即cat对象的内部虚拟表指针指向Cat内部的虚函数表，此表中存放的是Cat::speak()的地址<br>
+(通过 cat 对象的 vptr ——> 找到 Cat 虚函数表 ——> 找到 speak 对应的函数地址 ——> 调用 Cat::speak)<br>
+
+**当父类指针或者引用指向子类对象的时候，发生多态**
+```text
+即:
+    Cat cat;
+    Animal & animal = cat;
+    animal.speak();
+```
+animal调用speak()，会从Cat的虚拟表中找这个函数地址<br>
+以下分别是重写过的Cat类、Animal类、未重写过的Cat类<br>
+![截图](./picture/2.png)    ![截图](./picture/3.png)    ![截图](./picture/4.png)<br>
+#### 三：多态案列
+引用和指针的部分区别<br>
+-   调用其内部成员时，引用：b1.func() 指针：b1->func()
+-   二者均可指向栈区或堆区
+-   引用强调对象必须存在且绑定不变，而指针允许指向为空和改变指向<br>
+-   指针和引用只是访问对象的方式
+   
+栈区和堆区区别<br>
+-   栈区数据调用结束会执行析构函数，自动销毁。堆区数据调用结束不会自动销毁，等待程序员操作，所以需要delete b1
+-   栈区：person p1;  堆区：new person;
+-   栈和堆决定对象的生命周期管理方式<br>
+
+[duotai_1.cpp 示例](./duotai_1.cpp)<br>
+[duotai_2.cpp 示例](./duotai_2.cpp)<br>
+多态的优点<br>
+-   组织结构清晰
+-   可读性强
+-   前期及后期的扩展和维护性高(对拓展开发，对修改关闭)
+#### 四：纯虚函数和抽象类
+在多态中，通常父类的虚函数的实现是没有意义的，主要都是调用子类重写的内容，因此可以改写为纯虚函数<br>
+纯虚函数语法： virtual 返回值类型 函数名 (参数列表) = 0;如 **virtual void func() = 0;**<br>
+类中有纯虚函数的类又称作抽象类<br>
+
+抽象类特点：<br>
+-  无法实例化对象
+-  子类必须重写抽象类中的纯虚函数，否则子类也属于抽象类，无法实例化对象
+#### 五：虚析构和纯虚析构
+二者均可解决父类指针释放子类对象问题，如果子类中没有堆区数据，可以不写虚析构或者纯虚析构<br>
+且都需要有具体的函数实现(与纯虚函数不同，纯虚函数不需要函数实现)<br>
+```text
+虚析构语法：
+    virtual ~Animal(){函数实现}
+
+纯虚析构语法
+    virtual ~Animal() = 0;
+    类外 Animal::~Animal(){函数实现}
+```
+```cpp
+class Animal {
+public:
+    Animal() {
+        cout << "Animal构造" << endl;
+    }
+    //virtual ~Animal() {
+    //    cout << "Animal虚析构" << endl;
+    //}
+    virtual ~Animal() = 0;
+    virtual void speak() = 0;
+    string* m_name;
+};
+
+Animal::~Animal() {
+    cout << "Animal纯虚析构" << endl;
+}
+
+class Cat :public Animal {
+public:
+    void speak() {
+        cout << "Cat构造" << endl;
+        cout << *m_name << "在叫" << endl;
+    }
+    Cat(string name) {
+        m_name = new string(name);
+    }
+    ~Cat() {
+        if (m_name != nullptr) {
+            cout << "Cat析构" << endl;
+            delete m_name;
+            m_name = nullptr;
+        }
+    }
+    string* m_name;
+};
+
+void test() {
+    Animal* a1 = new Cat("tom");
+    a1->speak();
+    delete a1;
+    //父类指针在析构时，不会调用子类中的析构函数，导致子类如果有堆区属性，未被释放，导致内存泄漏
+    //改成虚析构解决，这样就会走子类中的析构函数 virtual ~Animal(){}
+    //当然也有纯虚析构 virtual ~Animal() = 0;(子类中记得重写)
+    //但由于此代码中，父类析构函数也运行到了，因此必须要有实现，在外部加Animal::~Animal(){代码实现}
+    //纯虚析构类似一个声明，必须要有实现，在类外实现。有纯虚析构的也是抽象类
+}
+int main() {
+    test();
+    return 0;
+}
+```
+delete a1运行时，会先调用对应析构函数，然后再释放内存<br>
