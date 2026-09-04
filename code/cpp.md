@@ -46,7 +46,14 @@
     - [三：多态案列](#三多态案列)
     - [四：纯虚函数和抽象类](#四纯虚函数和抽象类)
     - [五：虚析构和纯虚析构](#五虚析构和纯虚析构)
->>>>>>> 66ca5a563298b326a91148b14f89b66cf3728062
+- [文件操作](#文件操作)
+  - [文本文件](#文本文件)
+    - [一：写文件](#一写文件)
+    - [二：读文件](#二读文件)
+  - [二进制文件](#二进制文件)
+    - [一：写文件](#一写文件-1)
+    - [二：读文件](#二读文件-1)
+
 
 ```text
 生成目录 ctrl+shift+p Markdown: Create Table of Contents
@@ -1069,11 +1076,11 @@ public:
 };
 int main(){
     Person p1(18,160);
-    Person p2(p1);
+    Person p2(p1);//此处是拷贝重点
     cout<<p2.m_age<<endl;
     cout<<*p2.m_height<<endl;
 }
-//对于m_age,利用编译器提供的拷贝函数，会做浅拷贝操作
+//对于m_age,利用编译器提供的拷贝函数，会做浅拷贝操作，利用默认的拷贝构造函数，复制了地址m_height
 //对于*m_height，仍然是浅拷贝操作，浅拷贝操作对于指针变量会有影响。更改p1.height，p2.height也会随之更改。还有重复释放的问题。
 ```
 ```text
@@ -1095,13 +1102,13 @@ public:
         }
         cout << "析构函数调用" <<endl;
     }
-    Person(const Person &p){
+    Person(const Person &p){//自定义拷贝构造函数，new一个地址给p2.m_height
         cout << "拷贝函数调用" << endl;
         m_age = p.m_age;
-        m_height = p.m_height;
+        //m_height = p.m_height;浅拷贝操作(复制地址，共享一个整数)
         //m_height = p.m_height;编译器默认实现此行代码
         //深拷贝操作，解决浅拷贝带来的问题
-        m_height = new int(*p.m_height);
+        m_height = new int(*p.m_height);//深拷贝操作(复制整数，新建独立内存)
     }
     int m_age;
     int *m_height;
@@ -1433,7 +1440,8 @@ int main(){
 }
 ```
 ### 友元
-关键字friend
+关键字friend<br>
+友元关系不继承、不传递
 ```text
 全局函数做友元       friend void test1(Building *building);
 类做友元             friend class goodfriend;
@@ -1479,7 +1487,10 @@ class goodfriend{
 public:
     goodfriend();
     void visit();
-    Building * building;
+    Building * building;//声明指针，并没有创建对象
+    ~goodfriend(){//必须释放否则内存泄漏
+        delete building;
+    }
 };
 
 class Building{
@@ -1526,6 +1537,9 @@ public:
     void visit();//让visit可以访问Building中私有的成员
     void visit1();//让visit1不可以访问私有成员
     Building * building;
+    ~goodfriend(){//释放堆区内存
+        delete building;
+    }
 };
 
 class Building{
@@ -2382,3 +2396,181 @@ int main() {
 }
 ```
 delete a1运行时，会先调用对应析构函数，然后再释放内存<br>
+
+## 文件操作
+对文件操作要包含头文件<fstream><br>
+- ofstream 写操作
+- ifstream 读操作
+- fstream  读写操作
+
+文件打开方式：
+- ios::in       为读文件而打开文件
+- ios::out      为写文件而打开文件
+- ios::ate      初始位置:文件尾
+- ios::app      追加方式写文件
+- ios::trunc    如果文件存在，先删除再创建
+- ios::binary   二进制方式
+- 可以配合使用，利用 |  :   ios::binary|ios::out
+### 文本文件
+文件以文本的ASCII码形式存储在计算机中
+#### 一：写文件
+步骤：
+- 包含头文件 #include <fstream>
+- 创建流对象 ofstream ofs;
+- 打开文件   ofs.open("文件路径",打开方式);
+- 写数据     ofs<<"写入的数据";
+- 关闭文件   ofs.close();<br>
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+//1包含头文件<fstream>
+#include <fstream>
+
+void test() {
+    //2创建流对象
+    ofstream ofs;
+    //3指定打开方式
+    ofs.open("D:/94.txt", ios::out);//若不写指定路径，直接写("94.txt",ios::out)则会直接在此cpp同级目录下创建94.txt文件
+    //注意文件路径写法，用/
+    //4写内容
+    ofs << "name : mike" << endl;
+    ofs << "age : 18" << endl;
+    ofs << "sex : male" << endl;
+    //5关闭文件
+    ofs.close();
+}
+int main() {
+    test();
+}
+```
+#### 二：读文件
+步骤：
+- 包含头文件 #include <fstream>
+- 创建流对象 ifstream ifs;
+- 打开文件并判断是否打开成功   ifs.open("文件路径",打开方式);
+- 写数据     四种方式读取
+- 关闭文件   ifs.close();<br>
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+//1包含头文件<fstream>
+#include <fstream>
+
+void test() {
+    //2创建流对象
+    ifstream ifs;
+    //3指定打开方式
+    ifs.open("D:/94.txt", ios::in);//若不写指定路径，直接写("94.txt",ios::out)则会直接在此cpp同级目录下创建94.txt文件
+    //注意文件路径写法，用/
+    if (!ifs.is_open()) {
+        cout << "打开失败" << endl;
+        return;
+    }
+    //4读内容
+    ///第一种
+    char buf[1024] = { 0 };
+    while (ifs >> buf) {
+        cout << buf << endl;
+    }
+
+    ///第二种
+    char buf[1024] = { 0 };
+    while (ifs.getline(buf, sizeof(buf))) {//接受数据的类型为char数组，长度有限制，且为成员函数
+        cout << buf << endl;
+    }
+
+    ///第三种
+    string buf;
+    while (getline(ifs, buf)) {//接受的数据类型为string，长度自动扩容，且为全局函数
+        cout << buf << endl;
+    }
+
+    ///第四种
+    char c;
+    while ((c = ifs.get()) != EOF) {//没读到文件尾，就一直读。EOF：end of file(一个字符一个字符的读，不推荐。不如一行行读快)
+        cout << c;
+    }
+
+    //5关闭文件
+    ifs.close();
+}
+int main() {
+    test();
+}
+```
+
+### 二进制文件
+文件以文本的二进制形式存储在计算机中,打开方式要指定为ios::binary
+#### 一：写文件
+二进制方式写文件主要利用流对象调用成员函数write()<br>
+函数原型:ostream& write(const char* buffer,int len);<br>
+参数解释：字符指针buffer指向内存中的一段存储空间，len是读写的字节数<br>
+```cpp
+//1、包含头文件<fstream>
+#include <fstream>
+
+class Person {
+public:
+    char m_name[64];
+    int m_age;
+};
+
+void test() {
+    //2、创建流对象
+    ofstream ofs;
+
+    //3、打开文件
+    ofs.open("D:/94_binary.txt", ios::out | ios::binary);
+    ///2和3可以合并 ofstream ofs("D:/94_binary.txt",ios::out|ios::binary);调用内部构造函数
+
+    //4、写文件
+    Person p = { "mike",19 };
+    ofs.write((const char*)&p, sizeof(Person)); 
+
+    //5、关闭文件
+    ofs.close();
+}
+int main() {
+    test();
+}
+```
+#### 二：读文件
+二进制方式读文件主要利用流对象调用成员函数read()<br>
+函数原型:istream& read(const char* buffer,int len);<br>
+参数解释：字符指针buffer指向内存中的一段存储空间，len是读写的字节数<br>
+```cpp
+//1、包含头文件<fstream>
+#include <fstream>
+
+class Person {
+public:
+    char m_name[64];
+    int m_age;
+};
+
+void test() {
+    //2、创建流对象
+    ifstream ifs;
+
+    //3、打开文件 判断文件是否打开成功
+    ifs.open("D:/94_binary.txt", ios::in | ios::binary);
+    ///2和3可以合并 ofstream ofs("D:/94_binary.txt",ios::in|ios::binary);调用内部构造函数
+    if (!ifs.is_open()) {
+        cout << "打开失败" << endl;
+        return;
+    }
+    //4、读文件
+    Person p;
+    ifs.read((char*)&p, sizeof(Person));
+    cout << p.m_name << p.m_age << endl;
+
+    //5、关闭文件
+    ifs.close();
+}
+
+int main() {
+    test();
+}
+```
