@@ -27,19 +27,19 @@
   - [运算符重载](#运算符重载)
     - [一：加号运算符重载](#一加号运算符重载)
     - [二：左移运算符重载](#二左移运算符重载)
-    - [递增运算符重载](#递增运算符重载)
-    - [赋值运算符重载](#赋值运算符重载)
-    - [关系运算符重载](#关系运算符重载)
-    - [函数调用运算符重载(仿函数)](#函数调用运算符重载仿函数)
+    - [三：递增运算符重载](#三递增运算符重载)
+    - [四：赋值运算符重载](#四赋值运算符重载)
+    - [五：关系运算符重载](#五关系运算符重载)
+    - [六：函数调用运算符重载(仿函数)](#六函数调用运算符重载仿函数)
   - [继承](#继承)
-    - [继承基本语法](#继承基本语法)
-    - [继承方式](#继承方式)
-    - [继承中的对象模型](#继承中的对象模型)
-    - [构造和析构顺序](#构造和析构顺序)
-    - [同名成员处理](#同名成员处理)
-    - [同名静态成员处理](#同名静态成员处理)
-    - [多继承](#多继承)
-    - [菱形继承](#菱形继承)
+    - [一：继承基本语法](#一继承基本语法)
+    - [二：继承方式](#二继承方式)
+    - [三：继承中的对象模型](#三继承中的对象模型)
+    - [四：构造和析构顺序](#四构造和析构顺序)
+    - [五：同名成员处理](#五同名成员处理)
+    - [六：同名静态成员处理](#六同名静态成员处理)
+    - [七：多继承](#七多继承)
+    - [八：菱形继承](#八菱形继承)
   - [多态](#多态)
     - [一：概念及语法](#一概念及语法)
     - [二：多态原理](#二多态原理)
@@ -1713,9 +1713,12 @@ int main(){
 }
 
 ```
-#### 递增运算符重载
+#### 三：递增运算符重载
+前置递增返回引用，后置递增返回值。(如果返回临时变量temp的引用，那返回的是+1后的新值，而不是旧值)
 ```text
-前置递增返回引用，后置递增返回值
+固定写法
+person &operator++(){}      前置递增
+person operator++(int){}    后置递增
 ```
 ```cpp
 class person{
@@ -1733,7 +1736,7 @@ public:
         }
 //重载后置++运算符
         person operator++(int){//此处的形参int代表占位参数，用于区分前置和后置递增
-           person temp = *this;//先将当前对象的值保存到临时对象中
+           person temp = *this;//先将当前对象的值(旧值)保存到临时对象中
            m_num++;//再将当前对象的值加1
            return temp;//返回临时对象
         }
@@ -1769,7 +1772,7 @@ int main(){
     return 0;
 }
 ```
-#### 赋值运算符重载
+#### 四：赋值运算符重载
 ```text
 cpp编译器给一个类至少添加4个函数
 1默认构造函数(无参，函数体为空)
@@ -1786,13 +1789,17 @@ public:
     person(int age) {
         my_age = new int(age);
     }
+    // 深拷贝构造
+    person(const person& p){
+        my_age = new int(*p.my_age);
+    }
     ~person() {
         if (my_age != nullptr) {
             delete my_age;
             my_age = nullptr;
         }
     }
-    person& operator=(person& p) {//若为person operator=(person& p),则是返回值，相当于按照自身调用拷贝构造函数创建一个新的副本，返回引用才是返回真正的自身
+    person& operator=(const person& p) {//若为person operator=(person& p),则是返回值，相当于按照自身调用拷贝构造函数创建一个新的副本，返回引用才是返回真正的自身。此外要加const，因为赋值时只读取右侧对象，不应该修改它。
         //编译器提供浅拷贝m_age = p.my_age;
 
         //应该先判断是否有属性在堆区，如果有先释放干净，然后再进行深拷贝
@@ -1804,7 +1811,7 @@ public:
         my_age = new int(*p.my_age);
 
         return *this;
-
+        //由于是p2调用此函数，因此this指向的是p2本身，即*this就是p2，由于函数返回值类型是person&，所以return *this。如果函数返回值类型是person*，return this
     }
 
     int* my_age;
@@ -1820,6 +1827,7 @@ void test1() {
 
     p2 = p1;
     p3 = p2 = p1;//此代码要求必须返回为person的引用，否则无法连续调用“ = ”
+    //p3.operator=(p2.operator=(p1));
     cout << "p1 age: " << *p1.my_age << endl;
     cout << "p2 age: " << *p2.my_age << endl;
     cout << "p3 age: " << *p3.my_age << endl;
@@ -1830,7 +1838,7 @@ int main() {
     return 0;
 }
 ```
-#### 关系运算符重载
+#### 五：关系运算符重载
     用于对比自定义数据类型
 ```cpp
 class person {
@@ -1841,7 +1849,7 @@ public:
     }
 
     //重载==运算符
-    bool operator==(person& p) {
+    bool operator==(const person& p) const {//第一个const:不允许修改传入的p(即p2)。//第二个const:不允许修改函数调用者*this(即p1)
         if (this->m_name == p.m_name && this->m_age == p.m_age) {
             return true;
         }
@@ -1856,7 +1864,7 @@ public:
 void test1() {
     person p1("mike", 18);
     person p2("mike", 19);
-    if (p1 == p2) {
+    if (p1 == p2) {//p1==p2相当于p1.operator==(p2)
         cout << "p1==p2" << endl;
     }
     else {
@@ -1869,22 +1877,25 @@ int main() {
     return 0;
 }
 ```
-#### 函数调用运算符重载(仿函数)
+#### 六：函数调用运算符重载(仿函数)
 ```text
+对象(参数)  等价于   对象.operator()(参数)
 由于重载后的方式非常像函数的调用，因此也成为仿函数
 仿函数没有固定写法，非常灵活
+
+仿函数相较于普通函数的优点：对象内部可以保存状态
 ```
 ```cpp
 class mprint {
 public:
-    void operator()(string test) {//重载()运算符
+    void operator()(const string& test) const{//重载()运算符
         cout << test << endl;
     }
 };//仿函数很灵活，没有固定写法
 
 class Madd {
 public:
-    int operator()(int a, int b) {//重载()运算符
+    int operator()(int a, int b) const {//重载()运算符
         return a + b;
     }
 };//仿函数很灵活，没有固定写法
@@ -1894,17 +1905,20 @@ void m_print(string test) {
 }
 
 void test1() {
-    mprint mprint;
-    mprint("Hello World");//调用运算符重载，和函数调用非常像，又称仿函数
+    mprint printer;
+    printer("Hello World");//调用运算符重载，和函数调用非常像，又称仿函数
+    //等价于printer.operator()("Hello World")
     m_print("Hello World");//函数
 }
 
 void test2() {
-    Madd madd;
-    cout << madd(1, 2) << endl;//仿函数
+    Madd adder;
+    cout << adder(1, 2) << endl;//仿函数
+    //等价于adder.operator()(1,2)
 
     //Madd()(3,4)为匿名函数对象。匿名对象：当前行执行完立即被释放
     cout << Madd()(3, 4) << endl;
+    //拆分为两步    Madd temp;(临时对象)     cout<<temp(3,4)<<endl; 
 }
 int main() {
     test1();
@@ -1913,7 +1927,7 @@ int main() {
 }
 ```
 ### 继承
-#### 继承基本语法
+#### 一：继承基本语法
     class 子类:继承方式 父类
 ```text
 减少重复代码
@@ -1928,7 +1942,7 @@ class son:public father{
 
 };
 ```
-#### 继承方式
+#### 二：继承方式
 ```text
 公共继承
 保护继承
@@ -1938,7 +1952,7 @@ public 公共--成员 类内可以访问，类外也可以访问
 private 私有--成员 类内可以访问，类外不可以访问(子类不可以访问父类中的private内容)
 protected 保护--成员 类内可以访问，类外不可以访问(子类可以访问父类中的protected内容)
 ```
-    伪代码示例
+伪代码示例
 ```cpp
 class father{
     public:
@@ -2032,7 +2046,7 @@ int main(){
     return 0;
 }
 ```
-#### 继承中的对象模型
+#### 三：继承中的对象模型
 ```cpp
 class father {
 public:
@@ -2060,7 +2074,7 @@ int main() {
 }
 //即s1下有三个变量，a,b,c
 ```
-#### 构造和析构顺序
+#### 四：构造和析构顺序
 类似内容[跳转-类对象作为类成员](#类对象作为类成员)
 ```text
 先有爹后有儿子
@@ -2093,7 +2107,7 @@ int main() {
     return 0;
 }
 ```
-#### 同名成员处理
+#### 五：同名成员处理
 ```text
 当子类和父类中出现同名的成员
 访问子类同名成员：直接访问即可
@@ -2127,13 +2141,13 @@ void test() {
     s1.func();
     s1.father::func();
     s1.father::func(1);
-    //不可s1.func(1) 因为子类出现同名函数时，会覆盖掉父类中的同名函数，要想调用必须加作用域
+    //不可s1.func(1) 因为子类出现同名函数时，会隐藏掉父类中的同名函数，要想调用必须加作用域
 }
 int main() {
     test();
 }
 ```
-#### 同名静态成员处理
+#### 六：同名静态成员处理
     与同名成员类似，只是多了通过类名访问
 ```cpp
 class father {
@@ -2169,24 +2183,24 @@ void test() {
     son::func();
     //通过子类与父类关系，用类名访问
     //第一个::代表通过类名方式访问，第二个::代表访问父类作用域下的成员变量
-    cout << son::father::a << endl;
+    cout << son::father::a << endl;//太绕了，直接写father::a    
     son::father::func();
 }
 int main() {
     test();
 }
 ```
-#### 多继承
+#### 七：多继承
     class 子类:继承方式 父类1,继承方式 父类2.......
 ```text
 当多个父类中出现了同名的成员变量，调用时需要加作用域    
 ```
-#### 菱形继承
+#### 八：菱形继承
     动物是羊 驼的父类，羊驼同时继承羊 驼
 ```text
 动物的age变量，传给羊和驼，但是羊驼又同时继承了这两个类的age，事实上，羊驼只需要一个age.利用虚继承解决(类似静态变量)
 其中animal称为虚基类
-类似于静态变量，age只剩一个，因此无论是s1.age/s1.sheep::age/s1.tup::age，指的都是同一个age(指向同一个内存)
+类似于静态变量，age只剩一个，因此无论是s1.age/s1.sheep::age/s1.tuo::age，指的都是同一个age(指向同一个内存)
 从sheep和tuo下继承来的是vbptr(虚基类指针 virtual base ptr),指向vbtable(虚基类表)
 ```
 ```text
@@ -2202,6 +2216,7 @@ static：
 静态变量并不能代替虚继承解决问题，因为所有对象共用这一个信息，而虚继承能实现每个对象有自己特有的信息。
 静态变量只能解决age重复的问题
 ```
+![截图](./picture/5.png)       ![截图](./picture/6.png)  
 ```cpp
 class animal {
 public:
@@ -2233,7 +2248,7 @@ int main() {
 ```
 ### 多态
 #### 一：概念及语法
-    多态是cpp面向对象三大特性之一
+多态是cpp面向对象三大特性之一
 ```text
 分类
 静态多态：函数重载和运算符重载属于静态多态，复用函数名
@@ -2277,8 +2292,10 @@ void dospeak(Animal& animal) {//引用传递，若为值传递，则会失去多
 //动态多态满足条件
 //    1有继承关系
 //    2子类重写父类虚函数
+//    3通过父类指针或引用调用虚函数
 
-//动态多态的使用：父类的指针或引用，执行子类对象 Animal animal = cat,切记不要使用值传递
+//动态多态的使用：父类的指针或引用，执行子类对象 Animal& animal = cat,切记不要使用值传递
+//按值传递或赋值给父类对象会失去动态多态
 //任何相关的传递都要考虑是用值传递还是引用传递还是地址传递
 void test() {
     Cat cat;
@@ -2303,7 +2320,7 @@ public:
 class Animal{
 public:
     virtual void speak(){//虚函数
-        pass;
+
     }
 };
 //sizeof(Animal) = 8 多了一个虚指针，在64位系统中大小为8
@@ -2351,10 +2368,22 @@ animal调用speak()，会从Cat的虚拟表中找这个函数地址<br>
 -   调用其内部成员时，引用：b1.func() 指针：b1->func()
 -   二者均可指向栈区或堆区
 -   引用强调对象必须存在且绑定不变，而指针允许指向为空和改变指向<br>
--   指针和引用只是访问对象的方式
+-   指针和引用只是访问对象的方式<br>
+
+二者均可指向栈区或堆区
+```cpp
+addCalculator add;
+basicCalculator& ref = add;
+basicCalculator* ptr = &add;
+ref.getResult();
+ptr->getResult();
+
+basicCalculator* ptr1 = new addCalculator;
+basicCalculator& ref1 = *(new addCalculator);
+```
    
 栈区和堆区区别<br>
--   栈区数据调用结束会执行析构函数，自动销毁。堆区数据调用结束不会自动销毁，等待程序员操作，所以需要delete b1
+-   栈区数据离开作用域会执行析构函数，自动销毁。堆区数据调用结束不会自动销毁，等待程序员操作，所以需要delete b1
 -   栈区：person p1;  堆区：new person;
 -   栈和堆决定对象的生命周期管理方式<br>
 
@@ -2372,9 +2401,11 @@ animal调用speak()，会从Cat的虚拟表中找这个函数地址<br>
 抽象类特点：<br>
 -  无法实例化对象
 -  子类必须重写抽象类中的纯虚函数，否则子类也属于抽象类，无法实例化对象
+-  但可以创建指针或引用(Animal* pointer;/Animal& reference = cat;)
+-  抽象函数可以包含纯虚函数+普通函数
 #### 五：虚析构和纯虚析构
-二者均可解决父类指针释放子类对象问题，如果子类中没有堆区数据，可以不写虚析构或者纯虚析构<br>
-且都需要有具体的函数实现(与纯虚函数不同，纯虚函数不需要函数实现)<br>
+二者均可解决父类指针释放子类对象问题。只要可能通过父类指针 delete 子类对象，父类析构函数就必须是虚函数，与子类有没有堆区成员无关<br>
+且都需要有具体的函数实现(与纯虚函数不同，纯虚函数不需要函数实现)<br>        
 ```text
 虚析构语法：
     virtual ~Animal(){函数实现}
