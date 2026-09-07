@@ -25,8 +25,8 @@
     - [const修饰成员函数](#const修饰成员函数)
   - [友元](#友元)
   - [运算符重载](#运算符重载)
-    - [加号运算符重载](#加号运算符重载)
-    - [左移运算符重载](#左移运算符重载)
+    - [一：加号运算符重载](#一加号运算符重载)
+    - [二：左移运算符重载](#二左移运算符重载)
     - [递增运算符重载](#递增运算符重载)
     - [赋值运算符重载](#赋值运算符重载)
     - [关系运算符重载](#关系运算符重载)
@@ -1582,11 +1582,11 @@ int main(){
 }
 ```
 ### 运算符重载
-#### 加号运算符重载
+#### 一：加号运算符重载
 ```text
 通过局部函数或者全局函数重载加号运算符
 局部函数意思就是在类内定义一个函数，然后通过对象调用，如p1.test(p2)
-全局函数是在类外定义一个函数，直接调用，如tese(p1,p2)
+全局函数是在类外定义一个函数，直接调用，如test(p1,p2)
 
 运算符重载的意义:给运算符号一些新的定义，如person p3 = p1 + p2;
 ```
@@ -1631,20 +1631,60 @@ int main() {
 ```cpp
 //将重载的函数名改为
 person operator+(person &p1){}
-person operator(person &p1,person &p2){}
+person operator+(person &p1,person &p2){}
 //这样就可直接写
 person p3 = p1 + p2;//本质是p3 = operator+(p1,p2)/p3 = p1.operator(p2)
 
 //改成
-person operator(person &p1,num)
+person operator+(person &p1,num)
 //即可实现
 p3 = p1 + num;
 ```
-<<<<<<< HEAD        
-  
-=======
-#### 左移运算符重载
-    一般采用全局函数进行重载，重载左移运算符可以实现输出自定义数据类型
+示例
+```cpp
+//成员函数版本
+class Person {
+public:
+    Person(int a, int b) : m_a(a), m_b(b) {}
+
+    Person operator+(const Person& other) const {
+        Person temp;
+
+        temp.m_a = m_a + other.m_a;
+        temp.m_b = m_b + other.m_b;
+
+        return temp;
+    }
+
+    Person() = default;
+
+    int m_a = 0;
+    int m_b = 0;
+};
+void test(){
+    Person p1(10, 1);
+    Person p2(20, 2);
+    Person p3 = p1 + p2;//Person p3 = p1.operator+(p2);
+    //p1 是调用函数的对象，也就是 *this,左侧的 p1 已经通过 this 传入。
+    //p2 传给参数 other
+}
+```
+```cpp
+//全局函数版本
+Person operator+(const Person& p1, const Person& p2) {
+    Person temp;
+
+    temp.m_a = p1.m_a + p2.m_a;
+    temp.m_b = p1.m_b + p2.m_b;
+
+    return temp;
+}
+void test(){
+   Person p3 = p1 + p2;//Person p3 = operator+(p1, p2);
+}
+```
+#### 二：左移运算符重载
+一般采用全局函数进行重载，重载左移运算符可以实现输出自定义数据类型
 ```cpp
 class person{
 friend ostream & operator<<(ostream &out,person &p);//声明友元函数，以访问private成员变量
@@ -1777,7 +1817,7 @@ void test1() {
     //由于构造函数的存在，会执行三次new int,得到三块独立的内存分别用于存放 18 20 30
     //但由于p1 p2 p3是局部对象，通常位于栈上，
     //后续进行深拷贝，释放p2指向20的内存，新建一个内存空间，用于保存p2的18，p3同理，最后三个值都是18，但拥有三块独立的内存空间
-    
+
     p2 = p1;
     p3 = p2 = p1;//此代码要求必须返回为person的引用，否则无法连续调用“ = ”
     cout << "p1 age: " << *p1.my_age << endl;
@@ -1848,7 +1888,7 @@ public:
         return a + b;
     }
 };//仿函数很灵活，没有固定写法
-
+ 
 void m_print(string test) {
     cout << test << endl;
 }
@@ -2574,3 +2614,5 @@ int main() {
     test();
 }
 ```
+
+[def]: #文本文件
