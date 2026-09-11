@@ -5,29 +5,29 @@ using namespace std;
 
 #define MAX 1000
 
-struct Person{
-  string name;
-  string sex;
-  int age;
-  int tele;
-  string address;  
+struct Person {
+    string name;
+    string sex;
+    int age;
+    int tele;
+    string address;
 };
 
-struct AddressBook{//通讯录结构体
-  //通讯录中保存的联系人数组
-  struct Person personArray[MAX];
-  //通讯录在当前记录联系人个数
-  int size;
+struct AddressBook {//通讯录结构体
+    //通讯录中保存的联系人数组
+    struct Person personArray[MAX];
+    //通讯录在当前记录联系人个数
+    int size;
 };
 
 void showmenu();
-void addPerson(AddressBook * abs);
-void del(AddressBook * abs);
-int isExist(AddressBook * abs, string name);
-void viewPerson(AddressBook * abs);
-void searchPerson(AddressBook * abs);
-void modifyPerson(AddressBook * abs);
-void clearPerson(AddressBook * abs);
+void addPerson(AddressBook* abs);
+void del(AddressBook* abs);
+int isExist(AddressBook* abs, string name);
+void viewPerson(AddressBook* abs);
+void searchPerson(AddressBook* abs);
+void modifyPerson(AddressBook* abs);
+void clearPerson(AddressBook* abs);
 
 void showmenu() {
     cout << "**************************" << endl;
@@ -41,12 +41,12 @@ void showmenu() {
     cout << "**************************" << endl;
 }
 
-void addPerson(AddressBook * abs){  
-    if(abs->size == MAX){
-        cout<<"通讯录已满"<<endl;
+void addPerson(AddressBook* abs) {
+    if (abs->size == MAX) {
+        cout << "通讯录已满" << endl;
         return;
     }
-    else{
+    else {
         string name;
         int sex;
         int age;
@@ -55,53 +55,53 @@ void addPerson(AddressBook * abs){
         cout << "请输入姓名" << endl;
         cin >> name;
         abs->personArray[abs->size].name = name;
-        
-        cout << "请输入性别 1为男 2为女"<< endl;
-        FLAG:
+
+        cout << "请输入性别 1为男 2为女" << endl;
+    FLAG:
         cin >> sex;
-        if(sex==1){
+        if (sex == 1) {
             abs->personArray[abs->size].sex = "男";
         }
-        else if (sex==2){
+        else if (sex == 2) {
             abs->personArray[abs->size].sex = "女";
         }
-        else{
-            cout<<"输入性别信息错误，请重新输入"<<endl;
+        else {
+            cout << "输入性别信息错误，请重新输入" << endl;
             goto FLAG;
         }
 
-        cout<<"请输入年龄"<<endl;
+        cout << "请输入年龄" << endl;
         cin >> age;
         abs->personArray[abs->size].age = age;
 
-        cout<<"请输入电话"<<endl;
-        cin>>tele;
+        cout << "请输入电话" << endl;
+        cin >> tele;
         abs->personArray[abs->size].tele = tele;
-        
-        cout<<"请输入住址"<<endl;
+
+        cout << "请输入住址" << endl;
         cin >> address;
         abs->personArray[abs->size].address = address;
-        
+
         system("pause");
         system("cls");
 
         abs->size++;
     }
- 
+
 }
 
-void del(AddressBook * abs){//覆盖操作实现删除
+void del(AddressBook* abs) {//覆盖操作实现删除
     cout << "请输入要删除的人的姓名" << endl;
     string name;
     cin >> name;
     int index;
-    index = isExist(abs,name);
-    if(index == -1){
+    index = isExist(abs, name);
+    if (index == -1) {
         cout << "联系人不存在" << endl;
     }
-    else{
-        for(int i = index;i<abs->size;i++){
-            abs->personArray[i] = abs->personArray[i+1];
+    else {
+        for (int i = index;i < abs->size - 1;i++) {//i < abs->size-1 不然循环会多运行一次
+            abs->personArray[i] = abs->personArray[i + 1];
             cout << "删除成功" << endl;
         }
         abs->size--;
@@ -111,35 +111,35 @@ void del(AddressBook * abs){//覆盖操作实现删除
     system("cls");
 }
 
-int isExist(AddressBook * abs, string name){//检测联系人是否存在，且查找其具体位置
-    for(int i = 0;i<abs->size;i++){
-        if(abs->personArray[i].name == name){
+int isExist(AddressBook* abs, string name) {//检测联系人是否存在，且查找其具体位置
+    for (int i = 0;i < abs->size;i++) {
+        if (abs->personArray[i].name == name) {
             return i;
         }
     }
-        return -1;
+    return -1;
 }
 
-void viewPerson(AddressBook * abs){
-    for(int i=0;i<abs->size;i++){
-            cout << abs->personArray[i].name << "\t";
-            cout << abs->personArray[i].sex << "\t";
-            cout << abs->personArray[i].age << "\t";
-            cout << abs->personArray[i].tele << "\t";
-            cout << abs->personArray[i].address << "\t";
-            cout << endl;
+void viewPerson(AddressBook* abs) {
+    for (int i = 0;i < abs->size;i++) {
+        cout << abs->personArray[i].name << "\t";
+        cout << abs->personArray[i].sex << "\t";
+        cout << abs->personArray[i].age << "\t";
+        cout << abs->personArray[i].tele << "\t";
+        cout << abs->personArray[i].address << "\t";
+        cout << endl;
     }
     system("pause");
     system("cls");
 }
 
-void searchPerson(AddressBook * abs){
-    cout << "请输入需要查找的联系人姓名"<<endl;
+void searchPerson(AddressBook* abs) {
+    cout << "请输入需要查找的联系人姓名" << endl;
     string name;
     cin >> name;
     bool found = false;
-    for(int i=0;i<abs->size;i++){
-        if(name == abs->personArray[i].name){
+    for (int i = 0;i < abs->size;i++) {
+        if (name == abs->personArray[i].name) {
             cout << "你要寻找的人信息如下" << endl;
             cout << abs->personArray[i].name << "\t";
             cout << abs->personArray[i].sex << "\t";
@@ -150,63 +150,63 @@ void searchPerson(AddressBook * abs){
             found = true;
         }
     }
-    if(!found){
+    if (!found) {
         cout << "查无此人" << endl;
     }
     system("pause");
     system("cls");
 }
 
-void modifyPerson(AddressBook * abs){
-    cout << "请输入需要修改的联系人姓名"<<endl;
+void modifyPerson(AddressBook* abs) {
+    cout << "请输入需要修改的联系人姓名" << endl;
     string name;
     int sex;
     int age;
     int tele;
     string address;
     cin >> name;
-    int index = isExist(abs,name);
-    if(index == -1){
-        cout << "联系人不存在"<< endl;
+    int index = isExist(abs, name);
+    if (index == -1) {
+        cout << "联系人不存在" << endl;
     }
-    else{
+    else {
         cout << "请输入姓名" << endl;
         cin >> name;
         abs->personArray[index].name = name;
-        
-        cout << "请输入性别 1为男 2为女"<< endl;
-        FLAG:
+
+        cout << "请输入性别 1为男 2为女" << endl;
+    FLAG:
         cin >> sex;
-        if(sex==1){
+        if (sex == 1) {
             abs->personArray[index].sex = "男";
         }
-        else if (sex==2){
+        else if (sex == 2) {
             abs->personArray[index].sex = "女";
         }
-        else{
-            cout<<"输入性别信息错误，请重新输入"<<endl;
+        else {
+            cout << "输入性别信息错误，请重新输入" << endl;
             goto FLAG;
         }
 
-        cout<<"请输入年龄"<<endl;
+        cout << "请输入年龄" << endl;
         cin >> age;
         abs->personArray[index].age = age;
 
-        cout<<"请输入电话"<<endl;
-        cin>>tele;
+        cout << "请输入电话" << endl;
+        cin >> tele;
         abs->personArray[index].tele = tele;
-        
-        cout<<"请输入住址"<<endl;
+
+        cout << "请输入住址" << endl;
         cin >> address;
         abs->personArray[index].address = address;
-        
+
         system("pause");
         system("cls");
     }
 }
 
-void clearPerson(AddressBook * abs){
-    for(int i=0;i<abs->size;i++){
+void clearPerson(AddressBook* abs) {
+    for (int i = 0;i < abs->size;i++) {
         abs->personArray[i] = {};//重置联系人数据，但不会释放内存
     }
     abs->size = 0;
