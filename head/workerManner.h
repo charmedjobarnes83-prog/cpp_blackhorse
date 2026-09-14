@@ -6,6 +6,8 @@ using namespace std;//使用标准命名空间
 #include <boss.h>
 #include <manager.h>
 
+#include <fstream>
+#define FILENAME "D:/94.txt"
 
 class workerManner {
 public:
@@ -19,6 +21,8 @@ public:
     Worker** m_array;
     //添加职工
     void add();
+
+    void save();
 
 
 

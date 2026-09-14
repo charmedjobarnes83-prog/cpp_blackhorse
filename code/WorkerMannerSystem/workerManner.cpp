@@ -7,7 +7,10 @@ workerManner::workerManner() {
 }
 
 workerManner::~workerManner() {
-
+    if(this->m_array != nullptr){
+        delete []this->m_array;
+        this->m_array = nullptr;
+    }
 }
 
 void workerManner::showmenu() {
@@ -79,7 +82,7 @@ void workerManner::add() {
         //更新新的职工人数
         this->m_peoplenum = new_num;
         //保存到文件中
-
+        this->save();
         cout << "添加" << addnum << "个员工成功" << endl;
     }
     else if (addnum <= 0) {
@@ -87,4 +90,12 @@ void workerManner::add() {
     }
     //system("pause");
     //system("cls");
+}
+
+void workerManner::save(){
+    ofstream ofs;
+    ofs.open(FILENAME,ios::out);
+    for(int i=0;i<this->m_peoplenum;i++){
+       ofs<<this->m_array[i]->m_id<<" "<<this->m_array[i]->m_name<<" "<<this->m_array[i]->m_careerid<<endl; 
+    }
 }
