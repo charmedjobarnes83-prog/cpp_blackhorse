@@ -7,7 +7,7 @@ Boss::Boss(int id, string name, int careerid) {
 }
 
 void Boss::showinfo() {
-    cout << "id:" << this->m_id << "\tname:" << this->m_name << "\tcareerid:" << this->getcareer() << "开公司" << endl;
+    cout << "id:" << this->m_id << "\tname:" << this->m_name << "\tcareerid:" << this->m_careerid << this->getcareer() << " 开公司" << endl;
 }
 
 string Boss::getcareer() {

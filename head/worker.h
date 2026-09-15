@@ -13,4 +13,6 @@ public:
     int m_id;
     string m_name;
     int m_careerid;
+
+    virtual ~Worker() = default;//看不明白此操作
 };

@@ -7,7 +7,7 @@ Employee::Employee(int id, string name, int careerid) {
 }
 
 void Employee::showinfo() {
-    cout << "id:" << this->m_id << "\tname:" << this->m_name << "\tcareerid:" << this->getcareer() << "完成员工的工作" << endl;
+    cout << "id:" << this->m_id << "\tname:" << this->m_name << "\tcareerid:" << this->m_careerid << this->getcareer() << " 完成员工的工作" << endl;
 }
 string Employee::getcareer() {
     return string("employee");

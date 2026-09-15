@@ -4,13 +4,65 @@ workerManner::workerManner() {
     //初始化属性
     this->m_peoplenum = 0;
     this->m_array = nullptr;
+    this->m_fileIsEmpty = true;
+
+
+    //1.文件不存在
+    ifstream ifs;
+    ifs.open(FILENAME, ios::in);
+    if (!ifs.is_open()) {
+        ifs.close();
+        return;//初始化完成，直接return，结束构造函数
+    }
+
+
+    //2.文件存在，数据为空
+    char ch;
+    ifs >> ch;
+    if (ifs.eof()) {
+        ifs.close();
+        return;
+    }
+
+
+    //3.文件不为空
+    int num = this->get_num();
+
+    this->m_peoplenum = num;
+    this->m_fileIsEmpty = false;
+    this->m_array = new Worker * [m_peoplenum];//在堆区创建一个数组，其中有m_peoplenum个元素，每个元素都是一个Worker*指针，用于存放员工对象的地址
+
+    ifs.close();
+    ifs.open(FILENAME, ios::in);
+    for (int i = 0;i < m_peoplenum;i++) {
+        int id;
+        string name;
+        int careerid;
+        ifs >> id >> name >> careerid;
+        switch (careerid) {
+        case 1:m_array[i] = new Employee(id, name, careerid);//多态，父类指针Worker*指向子类对象
+            break;
+        case 2:m_array[i] = new Manager(id, name, careerid);
+            break;
+        case 3:m_array[i] = new Boss(id, name, careerid);
+            break;
+        default:
+            m_array[i] = nullptr;
+            break;
+        }
+    }
+    ifs.close();
+    //运行程序，需要把原数据保留，于是我干脆直接把原数据加到新程序运行时的array中，这样也就导致了我必须对这些原数据对应的array进行初始化
 }
 
 workerManner::~workerManner() {
-    if(this->m_array != nullptr){
-        delete []this->m_array;
-        this->m_array = nullptr;
+    if (this->m_array != nullptr) {
+        for (int i = 0;i < this->m_peoplenum;i++) {
+            delete m_array[i];
+        }
     }
+    delete[]this->m_array;
+    this->m_array = nullptr;
 }
 
 void workerManner::showmenu() {
@@ -27,11 +79,7 @@ void workerManner::showmenu() {
     cout << "**********************" << endl;
 }
 
-void workerManner::exitSystem() {
-    cout << "欢迎下次使用" << endl;
-    system("pause");
-    exit(0);
-}
+
 
 void workerManner::add() {
     cout << "请输入需要添加的人数" << endl;
@@ -83,19 +131,165 @@ void workerManner::add() {
         this->m_peoplenum = new_num;
         //保存到文件中
         this->save();
+
+        //设置标志位
+        this->m_fileIsEmpty = false;
+
         cout << "添加" << addnum << "个员工成功" << endl;
     }
     else if (addnum <= 0) {
         cout << "输入有误" << endl;
     }
+
     //system("pause");
     //system("cls");
 }
 
-void workerManner::save(){
+void workerManner::save() {
     ofstream ofs;
-    ofs.open(FILENAME,ios::out);
-    for(int i=0;i<this->m_peoplenum;i++){
-       ofs<<this->m_array[i]->m_id<<" "<<this->m_array[i]->m_name<<" "<<this->m_array[i]->m_careerid<<endl; 
+    ofs.open(FILENAME, ios::out);
+    for (int i = 0;i < this->m_peoplenum;i++) {
+        ofs << this->m_array[i]->m_id << " " << this->m_array[i]->m_name << " " << this->m_array[i]->m_careerid << endl;
     }
+}
+
+int workerManner::get_num() {
+    ifstream ifs;
+    ifs.open(FILENAME, ios::in);
+
+    int id;
+    string name;
+    int careerid;
+
+    int num = 0;
+    while (ifs >> id && ifs >> name && ifs >> careerid) {
+        num++;
+    }
+    ifs.close();
+    return num;
+}
+
+void workerManner::show() {
+    if (m_fileIsEmpty) {
+        cout << "文件为空" << endl;
+        return;
+    }
+    else {
+        for (int i = 0;i < this->m_peoplenum;i++) {
+            this->m_array[i]->showinfo();//多态，父类调用子类接口(showinfo位于各个员工类中)
+        }
+    }
+
+}
+
+void workerManner::dele() {
+    int id;
+    cout << "请输入删除的职工id:" << endl;
+    cin >> id;
+    int ret = this->isExist(id);
+    if (ret == -1) {
+        cout << "查无此人" << endl;
+        return;
+    }
+
+    delete m_array[ret];
+
+    for (int i = ret;i < m_peoplenum - 1;i++) {//注意范围，不要越界
+        m_array[i] = m_array[i + 1];
+    }
+
+    m_peoplenum--;
+    m_array[m_peoplenum] = nullptr;
+
+    if (m_peoplenum == 0) {
+        m_fileIsEmpty = true;
+    }
+
+    save();
+}
+
+int workerManner::isExist(int id) {
+    for (int i = 0;i < m_peoplenum;i++) {
+        if (this->m_array[i]->m_id == id) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void workerManner::modify() {
+    int id;
+    string name;
+    int careerid;
+    cout << "输入需要修改人的id:" << endl;
+    cin >> id;
+    for (int i = 0;i < m_peoplenum;i++) {
+        if (m_array[i]->m_id == id) {
+            cout << "请输入修改后的name:" << endl;
+            cin >> name;
+            cout << "请输入修改后的careerid:" << endl;
+            cin >> careerid;
+            delete m_array[i];
+            switch (careerid) {
+            case 1:m_array[i] = new Employee(id, name, careerid);
+                break;
+            case 2:m_array[i] = new Manager(id, name, careerid);
+                break;
+            case 3:m_array[i] = new Boss(id, name, careerid);
+                break;
+            default:
+                cout << "输入有误" << endl;
+                m_array[i] = nullptr;
+                return;
+            }
+            save();
+            return;
+        }
+    }
+    cout << "查无此人" << endl;
+}
+
+void workerManner::search() {
+    int id;
+    cout << "请输入需要查找的id:" << endl;
+    cin >> id;
+    if (isExist(id) != -1) {
+        m_array[isExist(id)]->showinfo();
+        return;
+    }
+    cout << "查无此人" << endl;
+}
+
+void workerManner::sort() {
+    //降序
+
+    //选择排序法
+
+    for (int i = 0;i < m_peoplenum;i++) {
+        int max = i;
+        for (int j = i + 1;j < m_peoplenum;j++) {
+            if (m_array[max]->m_id < m_array[j]->m_id) {
+                max = j;
+            }
+        }
+        if (i != max) {
+            Worker* temp = m_array[i];//关键一步
+            m_array[i] = m_array[max];
+            m_array[max] = temp;
+        }
+    }
+
+
+    //冒泡排序法
+
+    /*for (int i = 0;i < m_peoplenum - 1;i++) {
+        for (int j = 0;j < m_peoplenum - i - 1;j++) {
+            if (m_array[j]->m_id < m_array[j + 1]->m_id) {
+                Worker* temp = m_array[j + 1];
+                m_array[j + 1] = m_array[j];
+                m_array[j] = temp;
+            }
+        }
+    }*/
+    save();
 }

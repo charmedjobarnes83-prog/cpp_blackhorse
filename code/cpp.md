@@ -54,6 +54,7 @@
     - [一：写文件](#一写文件-1)
     - [二：读文件](#二读文件-1)
 - [职工管理系统](#职工管理系统)
+  - [修改功能](#修改功能)
 
 
 ```text
@@ -301,7 +302,7 @@ for(int i=0;i<len;i++){
 int arr0[] = {5,0,6,3,7,1,8,9};
 len = sizeof(arr0)/sizeof(arr0[0]);
 int max;
-for(int i=0;i<len-1;i++0){
+for(int i=0;i<len-1;i++){
     for(int j=0;j<len-i-1;j++){
         if (arr0[j]>arr0[j+1]){
             max = arr0[j];
@@ -2652,4 +2653,27 @@ int main() {
 [def]: #文本文件
 
 ## 职工管理系统
-
+在写switch case时，当语句过长，需要用{}括起来
+```cpp
+switch(id){
+    case 0:
+        add();
+    break;
+    case 1:
+        dele();
+    break;
+    case 2:
+        {
+        int id = 0;
+        cin >> id;
+        func(id);
+        }
+    break;
+}
+```
+### 修改功能
+```text
+在代码中修改时，不能简单的把careerid修改后就完事，因为m_array[i]这个对象，创立时就已经确立了类型，如 m_array[i] = new Employee(),如果只是简单的修改了careerid，此对象的类型并未修改，
+因此，要先delete原对象，delete m_array[i],然后创建新对象，m_array[i] = new Boss(id,name,careerid)
+```
+因为Worker** m_array，所以数组中存的是Worker*指针，而非Worker对象本身，故而要用->索引

@@ -17,19 +17,18 @@ int main() {
         cin >> choice;
         switch (choice)
         {
-        case 0:wm1.exitSystem();
-            break;
+        case 0:return 0;
         case 1:wm1.add();
             break;
-        case 2:
+        case 2:wm1.show();
             break;
-        case 3:
+        case 3:wm1.dele();
             break;
-        case 4:
+        case 4:wm1.modify();
             break;
-        case 5:
+        case 5:wm1.search();
             break;
-        case 6:
+        case 6:wm1.sort();
             break;
         case 7:
             break;

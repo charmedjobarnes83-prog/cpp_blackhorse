@@ -7,13 +7,12 @@ using namespace std;//使用标准命名空间
 #include <manager.h>
 
 #include <fstream>
-#define FILENAME "D:/94.txt"
+#define FILENAME "D:/95.txt"
 
 class workerManner {
 public:
     workerManner();
     void showmenu();
-    void exitSystem();
 
     //记录职工人数
     int m_peoplenum;
@@ -22,9 +21,30 @@ public:
     //添加职工
     void add();
 
+    //写文件
     void save();
 
+    //判断文件是否存在的标志
+    bool m_fileIsEmpty;
 
+    //统计文件中的人数
+    int get_num();
+
+    //show
+    void show();
+
+    //delete
+    void dele();
+    int isExist(int id);
+
+    //modify
+    void modify();
+
+    //search
+    void search();
+
+    //sort
+    void sort();
 
     ~workerManner();
 };

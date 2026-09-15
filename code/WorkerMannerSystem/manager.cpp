@@ -7,7 +7,7 @@ Manager::Manager(int id, string name, int careerid) {
 }
 
 void Manager::showinfo() {
-    cout << "id:" << this->m_id << "\tname:" << this->m_name << "\tcareerid:" << this->getcareer() << "指挥工作" << endl;
+    cout << "id:" << this->m_id << "\tname:" << this->m_name << "\tcareerid:" << this->m_careerid << this->getcareer() << " 指挥工作" << endl;
 }
 
 string Manager::getcareer() {
