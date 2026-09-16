@@ -2700,6 +2700,7 @@ newspace[this->m_peoplenum + i] = worker;
 //ofs是一个文件输出流对象
 ofstream ofs;
 ofs.open(FILENAME, ios::out);
+//ios::ous是覆盖模式，而非追加模式
 
 ofs << m_array[i]->m_name;
 cout << value;
@@ -2715,6 +2716,8 @@ ifs.open(FILENAME, ios::in);
 
 ifs >> id && ifs >> name && ifs >> careerid
 //此处的>> 为operator重载运算符>>,用于在文件中读取数据，读取时遇到空格停止
+//对于string，会把读到的int转为string
+//如110 2 zzx 结果为：id =110  name = “2”  careerid 读取失败   进入失败状态，此条记录不会被get_num()统计
 ```
 
 ### 四：show()
@@ -2755,7 +2758,8 @@ delete m_array[ret];
 for (int i = ret;i < m_peoplenum - 1;i++) {//注意范围，不要越界
         m_array[i] = m_array[i + 1];
 }
-
+m_peoplenum--;
+m_array[m_peoplenum] = nullptr;//清除无效的指针
 ```
 
 ### 六：modify()  **重要**
@@ -2764,7 +2768,15 @@ for (int i = ret;i < m_peoplenum - 1;i++) {//注意范围，不要越界
 因此，先创建一个临时Worker*指针变量 newWorker，判断完careerid后，new一个对应的对象，并用newWorker保存，即newWorker = new Employee(id,name,careerid)。最后再删除掉原对象：delete m_array[i],再更改原空间的指向：m_array[i] = newWorker;
 ```
 因为Worker** m_array，所以数组中存的是Worker*指针，而非Worker对象本身，故而要用->索引
-
+```text
+创建空指针
+↓
+验证职业并创建对应的新对象
+↓
+再删除旧对象
+↓
+替换指针
+```
 ### 七：search()
 再次用到多态 m_array[isExist(id)]->showinfo();
 
@@ -2801,14 +2813,14 @@ m_array[j] = temp;
 m_array              程序运行时的堆内存
 ```
 ```cpp
-ofstream ofs(FILENAME, ios::trunc);//删除文件后重新创建
+ofstream ofs(FILENAME, ios::trunc);//清空文件内容；如果文件不存在则创建文件
 //这一步只会清空文件内容，不会影响程序内存中的m_array和m_array[i]
 
-delete m_array[i];//先清除完所有Worker*对象
+delete m_array[i];//通过for循环，先清除完所有Worker*指向的对象
 m_array[i] = nullptr;//重置状态
 
 delete[] m_array;//再清除指针数组
-//充值状态
+//重置状态
 m_array = nullptr;
 m_peoplenum = 0;
 m_fileIsEmpty = true;
@@ -2820,9 +2832,33 @@ this->m_peoplenum = 0;
 this->m_array = nullptr;
 this->m_fileIsEmpty = true;
 ```
+运行程序，需要把原数据保留，于是我干脆直接把原数据加到新程序运行时的array中，这样也就导致了我必须对这些原数据对应的array进行初始化。根据读取到的careerid创建对象
+```text
+把文件中的数据加载到内存中
+新建一个array[]指针数组，根据careerid决定创建对象的类别，并添加进数组(让array[i]指向该对象)
+```
+```cpp
+for (int i = 0;i < m_peoplenum;i++) {
+        int id;
+        string name;
+        int careerid;
+        ifs >> id >> name >> careerid;//读文件
+        switch (careerid) {
+        case 1:m_array[i] = new Employee(id, name, careerid);//多态，父类指针Worker*指向子类对象
+            break;
+        case 2:m_array[i] = new Manager(id, name, careerid);
+            break;
+        case 3:m_array[i] = new Boss(id, name, careerid);
+            break;
+        default:
+            m_array[i] = nullptr;
+            break;
+        }
+    }
+```
 
 ### 十一：析构函数
-
+先释放每个员工对象，在释放Worker*指针数组
 
 ### 十二：Worker类
 worker
@@ -2843,7 +2879,7 @@ p->showinfo();
 ### 十三：workerManner
 Worker** m_array代表二级指针(职工数组指针)
 ```text
-m_array
+m_array(指针)
    ↓
 [Worker*][Worker*][Worker*]
     ↓       ↓       ↓
@@ -2894,4 +2930,21 @@ void workerManner::search() {
     }
     cout << "查无此人" << endl;
 }
+```
+空指针
+```cpp
+//只要某个位置
+m_array[i] == nullptr
+//那么下面程序都会崩溃
+m_array[i]->showinfo();
+m_array[i]->m_id;
+m_array[i]->m_name;
+```
+一句话概括
+```text
+WorkerManner 用 Worker* 数组统一管理不同类型的员工对象，
+通过虚函数实现多态，通过文本文件保存和恢复员工数据，
+并手动管理对象和数组的生命周期。
+
+delete m_array[i] 释放员工对象，delete[] m_array 释放指针数组
 ```
