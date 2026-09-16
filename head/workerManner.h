@@ -18,14 +18,14 @@ public:
     int m_peoplenum;
     //职工数组指针
     Worker** m_array;
+    //判断文件是否存在的标志
+    bool m_fileIsEmpty;
+
     //添加职工
     void add();
 
     //写文件
     void save();
-
-    //判断文件是否存在的标志
-    bool m_fileIsEmpty;
 
     //统计文件中的人数
     int get_num();
@@ -45,6 +45,9 @@ public:
 
     //sort
     void sort();
+
+    //clear
+    void clear();
 
     ~workerManner();
 };

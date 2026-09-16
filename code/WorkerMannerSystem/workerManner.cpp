@@ -229,19 +229,20 @@ void workerManner::modify() {
             cin >> name;
             cout << "请输入修改后的careerid:" << endl;
             cin >> careerid;
-            delete m_array[i];
+            Worker* newWorker = nullptr;
             switch (careerid) {
-            case 1:m_array[i] = new Employee(id, name, careerid);
+            case 1:newWorker = new Employee(id, name, careerid);
                 break;
-            case 2:m_array[i] = new Manager(id, name, careerid);
+            case 2:newWorker = new Manager(id, name, careerid);
                 break;
-            case 3:m_array[i] = new Boss(id, name, careerid);
+            case 3:newWorker = new Boss(id, name, careerid);
                 break;
             default:
                 cout << "输入有误" << endl;
-                m_array[i] = nullptr;
                 return;
             }
+            delete m_array[i];
+            m_array[i] = newWorker;
             save();
             return;
         }
@@ -264,21 +265,25 @@ void workerManner::sort() {
     //降序
 
     //选择排序法
-
-    for (int i = 0;i < m_peoplenum;i++) {
-        int max = i;
-        for (int j = i + 1;j < m_peoplenum;j++) {
-            if (m_array[max]->m_id < m_array[j]->m_id) {
-                max = j;
+    if (!m_fileIsEmpty) {
+        for (int i = 0;i < m_peoplenum;i++) {
+            int max = i;
+            for (int j = i + 1;j < m_peoplenum;j++) {
+                if (m_array[max]->m_id < m_array[j]->m_id) {
+                    max = j;
+                }
+            }
+            if (i != max) {
+                Worker* temp = m_array[i];//关键一步
+                m_array[i] = m_array[max];
+                m_array[max] = temp;
             }
         }
-        if (i != max) {
-            Worker* temp = m_array[i];//关键一步
-            m_array[i] = m_array[max];
-            m_array[max] = temp;
-        }
+        save();
     }
-
+    else {
+        cout << "文件为空" << endl;
+    }
 
     //冒泡排序法
 
@@ -291,5 +296,32 @@ void workerManner::sort() {
             }
         }
     }*/
-    save();
+}
+
+void workerManner::clear() {
+    cout << "确认清空？" << endl << "1.确认 2.返回" << endl;
+    int a;
+    cin >> a;
+    if (a == 1) {
+        //清空文件
+        ofstream ofs(FILENAME, ios::trunc);//文件存在则清空内容保留文件。文件不存在则创建新文件
+        ofs.close();
+        if (this->m_array != nullptr) {
+            //删除堆区的每个职工对象
+            for (int i = 0;i < m_peoplenum;i++) {
+                delete m_array[i];
+                m_array[i] = nullptr;
+
+            }
+            //删除堆区的数组指针
+            delete[] m_array;
+            m_array = nullptr;
+            m_peoplenum = 0;
+            m_fileIsEmpty = true;
+        }
+    }
+    else if (a == 2) {
+        return;
+    }
+
 }

@@ -54,7 +54,20 @@
     - [一：写文件](#一写文件-1)
     - [二：读文件](#二读文件-1)
 - [职工管理系统](#职工管理系统)
-  - [修改功能](#修改功能)
+  - [一：add()](#一add)
+  - [二：save()](#二save)
+  - [三：get\_num()](#三get_num)
+  - [四：show()](#四show)
+  - [五：dele()](#五dele)
+  - [六：modify()  **重要**](#六modify--重要)
+  - [七：search()](#七search)
+  - [八：sort()](#八sort)
+  - [九：clear()](#九clear)
+  - [十：构造函数](#十构造函数)
+  - [十一：析构函数](#十一析构函数)
+  - [十二：Worker类](#十二worker类)
+  - [十三：workerManner](#十三workermanner)
+  - [十四：补充](#十四补充)
 
 
 ```text
@@ -2653,6 +2666,193 @@ int main() {
 [def]: #文本文件
 
 ## 职工管理系统
+
+### 一：add()
+```cpp
+//创建的是一个大小为 new_num 的指针数组
+Worker** newspace = new Worker * [new_num];
+//释放原有空间
+delete[] this->m_array;
+//更改新空间的指向
+this->m_array = newspace;
+```
+```cpp
+//添加新数据
+Worker* worker = nullptr;//新建一个空职工指针
+switch (careerid) {
+    case 1:
+        worker = new Employee(id, name, 1);
+        break;
+    case 2:
+        worker = new Manager(id, name, 2);
+        break;
+    case 3:
+        worker = new Boss(id, name, 3);
+        break;
+    default:break;
+}
+//将创建的职工指针保存到数组中
+newspace[this->m_peoplenum + i] = worker;
+```
+
+### 二：save()
+```cpp
+//ofs是一个文件输出流对象
+ofstream ofs;
+ofs.open(FILENAME, ios::out);
+
+ofs << m_array[i]->m_name;
+cout << value;
+//本质一样，只是ofs是输出到文件，而cout是输出到终端
+//ofstream重载了很多版本的operator<<, <<并不只适用于屏幕输出，他是一个重载运算符，可以把数据插入不同的输出流
+```
+
+### 三：get_num()
+用于读文件
+```cpp
+ifstream ifs;
+ifs.open(FILENAME, ios::in);
+
+ifs >> id && ifs >> name && ifs >> careerid
+//此处的>> 为operator重载运算符>>,用于在文件中读取数据，读取时遇到空格停止
+```
+
+### 四：show()
+```cpp
+this->m_array[i]->showinfo();
+//多态的应用，父类指针调用子类的函数
+//运行时会根据指针实际指向的对象类型决定调用哪个函数
+Worker*指向 Employee → Employee::showinfo()
+Worker*指向 Manager  → Manager::showinfo()
+Worker*指向 Boss     → Boss::showinfo()
+
+//在add中
+Worker* worker = nullptr;
+worker = new Employee(id, name, 1);
+//这两句：创建了一个Employee的对象，并用父类指针保存这个子类对象的地址
+//等价于
+Worker * worker = new Employee(id,name,1);
+//即m_array[i] 的声明类型是Worker*,实际指向的对象是Employee
+```
+回顾    动态多态&&静态多态
+```text
+利用父类指针/引用指向子类对象——此为多态
+但究竟走父类函数还是子类函数的具体实现，取决于是静态多态还是动态多态
+静态多态：父类函数中不加virtual，此时为早绑定，即便是多态，也走父类函数的实现
+动态多态：父类函数中加virtual，此为晚绑定，走子类函数的实现
+
+
+在父类函数为虚函数时(加virtual)
+子类重写此函数才会走子类实现，未重写就走父类实现
+```
+
+### 五：dele()
+```cpp
+//释放内存
+delete m_array[ret];
+
+//一定要注意索引不能越界
+for (int i = ret;i < m_peoplenum - 1;i++) {//注意范围，不要越界
+        m_array[i] = m_array[i + 1];
+}
+
+```
+
+### 六：modify()  **重要**
+```text
+在代码中修改时，不能简单的把careerid修改后就完事，因为m_array[i]这个对象，创立时就已经确立了类型，如 m_array[i] = new Employee(),如果只是简单的修改了careerid，此对象的类型并未修改。
+因此，先创建一个临时Worker*指针变量 newWorker，判断完careerid后，new一个对应的对象，并用newWorker保存，即newWorker = new Employee(id,name,careerid)。最后再删除掉原对象：delete m_array[i],再更改原空间的指向：m_array[i] = newWorker;
+```
+因为Worker** m_array，所以数组中存的是Worker*指针，而非Worker对象本身，故而要用->索引
+
+### 七：search()
+再次用到多态 m_array[isExist(id)]->showinfo();
+
+### 八：sort()
+法一：选择排序
+```text
+先设一个最大值(最小值)，依次比较，遇到更大的，进行调换
+内层循环：找到最大值
+外层循环：排序
+```
+关键步骤
+```cpp
+Worker* temp = m_array[i];
+m_array[i] = m_array[max];
+m_array[max] = temp;
+```
+法二：冒泡排序
+```text
+左右两个比较，大的放后面
+内层循环：把最大的放最后一位
+外层循环：控制最后一位/倒数第二位/倒数第三位.....
+```
+关键步骤
+```cpp
+Worker* temp = m_array[j + 1];
+m_array[j + 1] = m_array[j];
+m_array[j] = temp;
+```
+
+### 九：clear()
+区分两块完全独立的内存
+```text
+文件 D:/95.txt       磁盘上的数据
+m_array              程序运行时的堆内存
+```
+```cpp
+ofstream ofs(FILENAME, ios::trunc);//删除文件后重新创建
+//这一步只会清空文件内容，不会影响程序内存中的m_array和m_array[i]
+
+delete m_array[i];//先清除完所有Worker*对象
+m_array[i] = nullptr;//重置状态
+
+delete[] m_array;//再清除指针数组
+//充值状态
+m_array = nullptr;
+m_peoplenum = 0;
+m_fileIsEmpty = true;
+```
+### 十：构造函数
+初始化属性
+```cpp
+this->m_peoplenum = 0;
+this->m_array = nullptr;
+this->m_fileIsEmpty = true;
+```
+
+### 十一：析构函数
+
+
+### 十二：Worker类
+worker
+```text
+抽象基类（含纯虚函数），由于worker类中的代码主要通过子类实现(无需实现，所以只用写.h即可)，所以其内全是纯虚函数
+```
+三个子类Employee Manager Boss
+```text
+各自实现继承来的方法
+```
+动态多态
+```cpp
+Employee* e = new Employee(id,name,careerid);
+Worker* p = e;
+p->showinfo();
+//p的类型是Worker*，但实际对象是Employee，所以会调用Employee::showinfo()
+```
+### 十三：workerManner
+Worker** m_array代表二级指针(职工数组指针)
+```text
+m_array
+   ↓
+[Worker*][Worker*][Worker*]
+    ↓       ↓       ↓
+ Employee Manager  Boss
+
+ 所以此处要用m_array[i]->m_id 而非m_array[i].m_id
+```
+
+### 十四：补充
 在写switch case时，当语句过长，需要用{}括起来
 ```cpp
 switch(id){
@@ -2671,9 +2871,27 @@ switch(id){
     break;
 }
 ```
-### 修改功能
-```text
-在代码中修改时，不能简单的把careerid修改后就完事，因为m_array[i]这个对象，创立时就已经确立了类型，如 m_array[i] = new Employee(),如果只是简单的修改了careerid，此对象的类型并未修改，
-因此，要先delete原对象，delete m_array[i],然后创建新对象，m_array[i] = new Boss(id,name,careerid)
+写此项目学到一个新思路:在写函数时，如果需要分情况讨论，不用写两个if，写一个if即可，成立直接提前return，不成立会接着往下运行
+```cpp
+int workerManner::isExist(int id) {
+    for (int i = 0;i < m_peoplenum;i++) {
+        if (this->m_array[i]->m_id == id) {
+            return i;
+        }
+    }
+    return -1;
+}
+//void类型时,直接return;
 ```
-因为Worker** m_array，所以数组中存的是Worker*指针，而非Worker对象本身，故而要用->索引
+```cpp
+void workerManner::search() {
+    int id;
+    cout << "请输入需要查找的id:" << endl;
+    cin >> id;
+    if (isExist(id) != -1) {
+        m_array[isExist(id)]->showinfo();
+        return;
+    }
+    cout << "查无此人" << endl;
+}
+```

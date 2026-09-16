@@ -30,7 +30,7 @@ int main() {
             break;
         case 6:wm1.sort();
             break;
-        case 7:
+        case 7:wm1.clear();
             break;
         }
     }
