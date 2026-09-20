@@ -68,6 +68,20 @@
   - [十二：Worker类](#十二worker类)
   - [十三：workerManner](#十三workermanner)
   - [十四：补充](#十四补充)
+- [模板](#模板)
+  - [函数模版](#函数模版)
+    - [一：基本语法](#一基本语法)
+    - [二：普通函数与模版函数区别](#二普通函数与模版函数区别)
+    - [三：普通函数与模版的调用规则](#三普通函数与模版的调用规则)
+    - [四：模板局限性](#四模板局限性)
+  - [类模板](#类模板)
+    - [基本语法](#基本语法)
+    - [类模板对象做函数参数](#类模板对象做函数参数)
+    - [类模板与继承](#类模板与继承)
+    - [类模板成员函数类外实现](#类模板成员函数类外实现)
+    - [类模板分文件编写](#类模板分文件编写)
+    - [类模板与友元](#类模板与友元)
+  - [案例](#案例)
 
 
 ```text
@@ -2948,3 +2962,420 @@ WorkerManner 用 Worker* 数组统一管理不同类型的员工对象，
 
 delete m_array[i] 释放员工对象，delete[] m_array 释放指针数组
 ```
+
+## 模板
+### 函数模版
+#### 一：基本语法
+函数模版利用关键字template<br>
+模板目的：提高复用性，将类型参数化<br>
+使用函数模板有两种方式：1、自动类型推导 2、显示指定类型
+```cpp
+//template<typename T>和template<class T>一样，随便选一个即可
+template<typename T>
+void myswap(T& a, T& b) {
+    T temp = a;
+    a = b;
+    b = temp;
+}
+
+int main() {
+    int a = 20;
+    int b = 10;
+    //1、自动类型推导
+    myswap(a, b);
+    cout << "a" << a << "b" << b << endl;
+    //2、显示指定类型
+    myswap<int>(a, b);
+    cout << "a" << a << "b" << b << endl;
+}
+```
+注意事项
+```text
+1、自动类型推导，必须推导出一致的数据类型T才可以使用
+2、模板必须要确定出T的数据类型，才可以使用
+```
+错误示范一：
+```cpp
+template<typename T>
+void myswap(T& a, T& b) {
+    T temp = a;
+    a = b;
+    b = temp;
+}
+
+int main() {
+    int a = 20;
+    float b = 10.1;
+    //1、自动类型推导
+    myswap(a, b);//错误示范：推导出不一致的T类型
+    cout << "a" << a << "b" << b << endl;
+}
+```
+错误示范二：
+```cpp
+template<class T>
+void func(){
+    cout << "hello" <<endl;
+}
+int main(){
+    func();//错误：没有确认出T的数据类型
+    //func<int>(); 这样就对了，或者把模板那行删去也可
+}
+```
+案例：排序+交换+打印
+```cpp
+template<typename T>
+void myswap(T& a, T& b) {
+    T temp = a;
+    a = b;
+    b = temp;
+}
+
+template<class T>
+void sort(T arr[], int len) {
+    for (int i = 0;i < len;i++) {
+        int max = i;
+        for (int j = i + 1;j < len;j++) {
+            if (arr[j] > arr[max]) {
+                max = j;
+            }
+        }
+        if (i != max) {
+            myswap(arr[i], arr[max]);
+        }
+    }
+}
+
+template<class T>
+void printarray(T arr[], int len) {
+    for (int i = 0;i < len;i++) {
+        cout << arr[i];
+    }
+    cout << endl;
+}
+int main() {
+    char ch1[] = "aweknvc";
+    int len1 = sizeof(ch1) / sizeof(char);
+    sort(ch1, len1);
+    printarray(ch1, len1);
+
+    int ch2[] = { 4,5,7,3,9,1 };
+    int len2 = sizeof(ch2) / sizeof(int);
+    sort(ch2, len2);
+    printarray(ch2, len2);
+    //注意char数组和int数组的定义写法
+}
+```
+#### 二：普通函数与模版函数区别
+普通函数调用可以发送隐式类型转换<br>
+函数模板用自动类型推导，不可以发生隐式类型转换<br>
+函数模板用显示指定类型，可以发送隐式类型转换<br>
+隐式类型转换:
+```cpp
+int add(int a,int b){
+    return a+b;
+}
+void test(){
+    int a=10;
+    char c = 'c';
+    cout << add(a,c) << endl;
+}
+int main(){
+    test();
+}
+//输出109 a-97 c-99
+```
+```cpp
+template<class T>
+T myadd(T a,T b){
+    return a+b;
+}
+void test(){
+    int a = 10;
+    char c = 'c';
+    cout << myadd(a,c) << endl;//自动类型推导，不可以发生隐式类型转换
+    cout << myadd<int>(a,c) << endl;//显示指定类型，可以发送隐式类型转换
+}
+int main(){
+    test();
+}
+```
+#### 三：普通函数与模版的调用规则
+```text
+1、若普通函数和模板函数同名，且都可以调用，优先调用普通函数
+2、通过空模版参数列表，可以强制调用模板函数
+3、模板函数也可以发生函数重载
+4、若模板函数能够产生更好的匹配，优先调用模板函数
+```
+若普通函数和模板函数同名，且都可以调用，优先调用普通函数：
+```cpp
+void myprint(int a, int b) {
+    cout << "普通" << endl;
+}
+template<class T>
+void myprint(T a, T b) {
+    cout << "模板" << endl;;
+}
+void test() {
+    int a = 10;
+    int b = 20;
+    myprint(a, b);
+}
+int main() {
+    test();//调用普通函数
+}
+```
+通过空模版参数列表，可以强制调用模板函数：
+```cpp
+myprint<>(a, b);
+```
+模板函数也可以发生函数重载：
+```cpp
+void myprint(int a, int b) {
+    cout << "普通" << endl;
+}
+template<class T>
+void myprint(T a, T b,T c) {//发生重载
+    cout << "模板" << endl;;
+}
+void test() {
+    int a = 10;
+    int b = 20;
+    int c = 30;
+    myprint(a, b,c);//调用模板函数
+}
+int main() {
+    test();//
+}
+```
+若模板函数能够产生更好的匹配，优先调用模板函数：
+```cpp
+void test() {
+    char a = 'a';
+    char b = 'b';
+    myprint(a, b);//调用模板函数
+    /*因为相比于普通函数进行隐式转换
+    模板函数的自动匹配T更好*/
+}
+```
+#### 四：模板局限性
+T只能用于常见类型，如int float char 等，遇到class类/数组都会报错
+```cpp
+class Person{
+public:
+    int age;
+    string name;
+};
+template<class T>
+void compare(T a,T b){
+    if(a==b){
+        cout << "a=b" << endl;
+    }
+}
+int main(){
+    Person a(10,"mike");
+    Person b(20."jack");
+    compare(a,b);//报错
+}
+```
+```text
+解决办法：
+1、算数运算符重载
+2、具体化Person的版本——可解决自定义类型的通用化
+```
+```cpp
+//法二：加一段代码即可
+template<> void compare(Person &a,Person &b){
+    if(a.name = b.name&& a.age == b.age){
+        cout << "a=b" << endl;
+    }
+}
+```
+### 类模板
+#### 基本语法
+类模版与函数模板区别
+```text
+类模板没有自动类型推导的使用方式
+类模板在模板参数列表中可以有默认参数
+```
+```cpp
+template<class NameType, class AgeType = int>
+class Person {
+public:
+    Person(NameType name, AgeType age) {
+        this->name = name;
+        this->age = age;
+    }
+    NameType name;
+    AgeType age;
+
+};
+void test() {
+    Person<string> p1("mike", 11);//int 为默认参数类型
+    //Person p2("jaca", 20);错误--无法用自动类型推导
+    cout << p1.age << p1.name << endl;
+}
+int main() {
+    test();
+}
+```
+类模板中成员函数创建时机
+```text
+普通类中的成员函数一开始就可以创建
+类模板中的成员函数在调用时才创建(如调用错误也不会报错，除非实例化对象并调用才会报错)
+```
+#### 类模板对象做函数参数
+三种传入方式
+```text
+指定传入的类型:     直接显示对象的数据类型
+参数模板化:         将对象中的参数变成模板进行传递
+整个类模板化:       将这个对象类型模板化进行传递
+```
+```cpp
+template<class NameType, class AgeType = int>
+class Person {
+public:
+    Person(NameType name, AgeType age) {
+        this->name = name;
+        this->age = age;
+    }
+    void show() {
+        cout << "name:" << name << "age:" << age << endl;
+    }
+    NameType name;
+    AgeType age;
+
+};
+
+//1、指定传入类型
+void printp1(Person<string>& p) {
+    p.show();
+}
+
+//2、参数模板化
+template <class T1, class T2>
+void printp2(Person<T1, T2>& p) {
+    p.show();
+}
+
+//3、整个类模板化
+template <class T>
+void printp3(T& p) {
+    p.show();
+}
+
+void test() {
+    Person<string> p1("mike", 11);
+    printp1(p1);
+    printp2(p1);
+    printp3(p1);
+}
+int main() {
+    test();
+}
+```
+#### 类模板与继承
+```cpp
+template <class T>
+class father {
+    T m;
+};
+//class son :public father 不能这样写继承，必须要知道父类中的数据类型，才能继承给子类
+class son :public father<int> {
+
+};
+void test() {
+    son s1;
+}
+```
+#### 类模板成员函数类外实现
+类外实现要加上模板的参数列表：template<class T1, class T2><br>
+Person<T1, T2>::Person(T1 name, T2 age){}
+
+```cpp
+template <class T1, class T2>
+class Person {
+public:
+    Person(T1 name, T2 age);
+    void show();
+    T1 name;
+    T2 age;
+};
+
+//构造函数类外实现
+template<class T1, class T2>
+Person<T1, T2>::Person(T1 name, T2 age) {
+    this->name = name;
+    this->age = age;
+}
+
+//成员函数类外实现
+template<class T1, class T2>
+void Person<T1, T2>::show() {
+    cout << this->name << " " << this->age << endl;
+}
+
+void test() {
+    Person p1("nike", 20);
+    p1.show();
+}
+```
+#### 类模板分文件编写
+第一种方法:直接包含原文件   #include <person.cpp> 而非<person.h> <br>
+第二种方法:将.h和.cpp中的内容写在一起，并命名为.hpp文件(即声明和实现写在一起)   #include <person.hpp> <br>
+优先采用法二，hpp
+
+#### 类模板与友元
+选类内实现，直接在类内声明友元即可，参考printPerson(),类外实现过于复杂。
+```cpp
+
+//全局函数类外实现:让编译器知道Person类存在
+
+template<class T1, class T2>
+class Person;
+//这个实现也要放到前面来
+template<class T1, class T2>
+void printPerson1(Person<T1, T2> p) {
+    cout << "1" << p.age << endl;
+}
+
+template <class T1, class T2>
+class Person {
+public:
+
+    //全局函数 类内实现
+    friend void printPerson(Person<T1, T2> p) {
+        cout << p.name << " " << p.age << endl;
+    }
+    //全局函数 类外实现
+        //加空模板参数列表
+        //全局函数类外实现需要让编译器提前知道此函数存在
+    friend void printPerson1<>(Person<T1, T2> p);
+    Person(T1 name, T2 age);
+private:
+    T1 name;
+    T2 age;
+};
+
+
+template<class T1, class T2>
+Person<T1, T2>::Person(T1 name, T2 age) {
+    this->name = name;
+    this->age = age;
+}
+
+
+void test() {
+    Person p1("nike", 20);
+    printPerson(p1);
+    printPerson1(p1);
+}
+int main() {
+    test();
+}
+```
+### 案例
+MyArray.hpp 定义了一个“自己管理动态数组的模板类”，project3_formwork.cpp 负责测试它<br>
+[MyArray.hpp 源码](cpp_blackhorse/code/head/MyArray.hpp)<br>
+[project3_formwork.cpp 源码](./project3_formwork.cpp)<br>
+
