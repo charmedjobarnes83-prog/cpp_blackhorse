@@ -75,13 +75,27 @@
     - [三：普通函数与模版的调用规则](#三普通函数与模版的调用规则)
     - [四：模板局限性](#四模板局限性)
   - [类模板](#类模板)
-    - [基本语法](#基本语法)
-    - [类模板对象做函数参数](#类模板对象做函数参数)
-    - [类模板与继承](#类模板与继承)
-    - [类模板成员函数类外实现](#类模板成员函数类外实现)
-    - [类模板分文件编写](#类模板分文件编写)
-    - [类模板与友元](#类模板与友元)
+    - [一：基本语法](#一基本语法-1)
+    - [二：类模板对象做函数参数](#二类模板对象做函数参数)
+    - [三：类模板与继承](#三类模板与继承)
+    - [四：类模板成员函数类外实现](#四类模板成员函数类外实现)
+    - [五：类模板分文件编写](#五类模板分文件编写)
+    - [六：类模板与友元](#六类模板与友元)
   - [案例](#案例)
+- [STL](#stl)
+  - [vector](#vector)
+    - [一：基本语法](#一基本语法-2)
+    - [二：容器中存放自定义数据类型](#二容器中存放自定义数据类型)
+    - [三：vector容器中嵌套vector容器](#三vector容器中嵌套vector容器)
+  - [string](#string)
+    - [一：string构造函数](#一string构造函数)
+    - [二：string赋值操作](#二string赋值操作)
+    - [三：string字符串拼接](#三string字符串拼接)
+    - [四：string查找与替换](#四string查找与替换)
+    - [五：string字符串比较](#五string字符串比较)
+    - [六：string字符串存取](#六string字符串存取)
+    - [七：string字符串插入和删除](#七string字符串插入和删除)
+    - [八：子串获取](#八子串获取)
 
 
 ```text
@@ -3192,7 +3206,7 @@ template<> void compare(Person &a,Person &b){
 }
 ```
 ### 类模板
-#### 基本语法
+#### 一：基本语法
 类模版与函数模板区别
 ```text
 类模板没有自动类型推导的使用方式
@@ -3224,7 +3238,7 @@ int main() {
 普通类中的成员函数一开始就可以创建
 类模板中的成员函数在调用时才创建(如调用错误也不会报错，除非实例化对象并调用才会报错)
 ```
-#### 类模板对象做函数参数
+#### 二：类模板对象做函数参数
 三种传入方式
 ```text
 指定传入的类型:     直接显示对象的数据类型
@@ -3274,7 +3288,7 @@ int main() {
     test();
 }
 ```
-#### 类模板与继承
+#### 三：类模板与继承
 ```cpp
 template <class T>
 class father {
@@ -3288,7 +3302,7 @@ void test() {
     son s1;
 }
 ```
-#### 类模板成员函数类外实现
+#### 四：类模板成员函数类外实现
 类外实现要加上模板的参数列表：template<class T1, class T2><br>
 Person<T1, T2>::Person(T1 name, T2 age){}
 
@@ -3320,12 +3334,12 @@ void test() {
     p1.show();
 }
 ```
-#### 类模板分文件编写
+#### 五：类模板分文件编写
 第一种方法:直接包含原文件   #include <person.cpp> 而非<person.h> <br>
 第二种方法:将.h和.cpp中的内容写在一起，并命名为.hpp文件(即声明和实现写在一起)   #include <person.hpp> <br>
 优先采用法二，hpp
 
-#### 类模板与友元
+#### 六：类模板与友元
 选类内实现，直接在类内声明友元即可，参考printPerson(),类外实现过于复杂。
 ```cpp
 
@@ -3379,3 +3393,352 @@ MyArray.hpp 定义了一个“自己管理动态数组的模板类”，project3
 [MyArray.hpp 源码](cpp_blackhorse/code/head/MyArray.hpp)<br>
 [project3_formwork.cpp 源码](./project3_formwork.cpp)<br>
 
+
+## STL
+六大组件
+```text
+容器:各种数据结构，用于存放数据
+算法
+迭代器:扮演了容器与算法之间的胶合剂
+仿函数
+适配器
+空间配置器
+```
+### vector 
+#### 一：基本语法
+引用 #include <vector><br>
+把容器当做数组对待<br>
+把迭代器当做指针对待<br>
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+#include <vector>
+#include <algorithm>//标准算法头文件
+
+void myprint(int val);
+
+void test() {
+    //创建一个vector容器
+    vector<int> v;//把容器当做数组对待
+    //向容器中插入数据
+    v.push_back(10);
+    v.push_back(20);
+    v.push_back(30);
+    v.push_back(40);
+    v.push_back(50);
+    v.push_back(60);
+
+    //第一种遍历方式
+        //通过迭代器访问容器中的数据
+    vector<int>::iterator itBegin = v.begin();
+    //v.begin()起始迭代器，指向容器中的第一个元素
+
+    vector<int>::iterator itEnd = v.end();
+    //v.end()结束迭代器，指向容器中最后一个元素中的下一个位置
+    //vector<int>::iterator 拿到vector<int>这种容器的迭代器类型
+
+    while (itBegin != itEnd) {
+        cout << *itBegin << endl;
+        itBegin++;
+    }
+
+    //第二种
+    for (vector<int>::iterator it = v.begin();it != v.end();it++) {
+        cout << *it << endl;;
+    }
+
+    //第三种,利用STL提供遍历算法
+    for_each(v.begin(), v.end(), myprint);
+
+}
+void myprint(int val) {//实现在后面,前面记得加声明
+    cout << val << endl;
+}
+int main() {
+    test();
+}
+```
+#### 二：容器中存放自定义数据类型
+自定义Person类,存放Person在容器中,并遍历<br>
+vector<Person> v;
+```text
+*it是<>里面的东西
+创建一个vector容器,存Person类
+vector<Person>::iterator it  其中it是迭代器,(*it)是Person对象
+取数据:
+        cout << (*it).m_name << " " << (*it).m_age << endl;
+        cout << it->m_name << " " << it->m_age << endl;
+```
+自定义Person类,存放Person*在容器中,并遍历<br>
+vector<Person*> v;存Person
+```text
+*it是<>里面的东西
+创建一个vector容器,存Person指针
+vector<Person*>::iterator it  其中it是迭代器,(*it)是指向Person的指针
+取数据:
+        cout << (*it)->m_name << " " << (*it)->m_age << endl;
+```
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+#include <vector>
+#include <algorithm>//标准算法头文件
+
+class Person {
+public:
+    Person(string name, int age) {
+        this->m_name = name;
+        this->m_age = age;
+    }
+    string m_name;
+    int m_age;
+};
+void myprint(Person& p) {
+    cout << p.m_name << " " << p.m_age << endl;
+}
+void test() {
+    vector<Person> v;
+
+    Person p1("A", 10);
+    Person p2("B", 20);
+    Person p3("C", 30);
+    Person p4("D", 50);
+    Person p5("F", 40);
+
+    v.push_back(p1);
+    v.push_back(p2);
+    v.push_back(p3);
+    v.push_back(p4);
+    v.push_back(p5);
+
+    vector<Person>::iterator itBegin = v.begin();
+    vector<Person>::iterator itEnd = v.end();
+    while (itBegin != itEnd) {
+        cout << itBegin->m_name << " " << itBegin->m_age << endl;
+        itBegin++;
+    }
+
+    for (vector<Person>::iterator it = v.begin();it != v.end();it++) {
+        cout << (*it).m_name << " " << (*it).m_age << endl;
+        //cout << it->m_name << " " << it->m_age << endl;
+    }
+
+    for_each(v.begin(), v.end(), myprint);
+}
+//存放自定义数据类型 指针   
+void test2() {
+    vector<Person*> v;
+
+    Person p1("A", 10);
+    Person p2("B", 20);
+    Person p3("C", 30);
+    Person p4("D", 50);
+    Person p5("F", 40);
+
+    v.push_back(&p1);
+    v.push_back(&p2);
+    v.push_back(&p3);
+    v.push_back(&p4);
+    v.push_back(&p5);
+
+    for (vector<Person*>::iterator it = v.begin();it != v.end();it++) {
+        cout << (*it)->m_name << " " << (*it)->m_age << endl;
+    }
+}
+
+int main() {
+    test();
+    test2();
+}
+```
+#### 三：vector容器中嵌套vector容器
+类似二维数组<br>
+一层二层容器的增加数据操作相同,都是v.push_back()<br>
+*it指的是<>里的东西,
+此处*it_1代表小容器vector<int>,
+*it_2代表int数据
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+#include <vector>
+#include <algorithm>//标准算法头文件
+
+void test() {
+    vector <vector<int>> v;
+    vector<int> v1;
+    vector<int> v2;
+    vector<int> v3;
+    vector<int> v4;
+
+    for (int i = 0;i < 3;i++) {
+        v1.push_back(i);
+        v2.push_back(i + 5);
+        v3.push_back(i + 9);
+        v4.push_back(i + 15);
+    }
+
+    v.push_back(v1);
+    v.push_back(v2);
+    v.push_back(v3);
+    v.push_back(v4);
+
+    for (vector<vector<int>>::iterator it_1 = v.begin();it_1 != v.end();it_1++) {
+        for (vector<int>::iterator it_2 = it_1->begin();it_2 != it_1->end();it_2++) {
+            cout << *it_2 << "\t";
+        }
+        cout << endl;
+    }
+}
+int main() {
+    test();
+}
+```
+
+### string
+在此章节中：
+-   char* s      代表"hello"
+-   string& str  代表 string s1<br>
+另外其中的const代表不会修改原字符串
+#### 一：string构造函数
+-   `string();`                     //创建一个空字符串,如string str;
+-   `string (const char* s);`       //使用字符串s初始化
+-   `string (const string& str);`   //使用一个string对象初始化另一个string对象
+-   `string (int n, char c);`       //使用n个字符串c初始化
+```cpp
+    string s1;
+    const char* str = "hello";
+    string s2(str);//s2 = "hello"
+    string s3(s2);//s3 = "hello"
+    string s4(10, 'a');//s4 = "aaaaaaaaaa"
+```
+#### 二：string赋值操作
+一般用operator=,assign用的少:<br>
+-   `string& operator=(const char* s);`
+-   `string& operator=(const string &s);`
+-   `string& operator=(char c);`
+-   `string& assign(const char* s);`
+-   `string& assign(const char* s,int n);`
+-   `string& assign(const string &s);`
+-   `string& assign(int n,char c);`
+```cpp
+    string s1;
+    s1 = "hello";
+    //hello
+    string s2;
+    s2 = s1;
+    //hello
+    string s3;
+    s3 = 'a';
+    //a
+    string s4;
+    s4.assign("hello world");
+    //hello world 
+    string s5;
+    s5.assign("hello world", 3);
+    //hel
+    string s6;
+    s6.assign(s5);
+    //hel
+    string s7;
+    s7.assign(6, 'e');
+    //eeeeee
+```
+#### 三：string字符串拼接
+-   `string& operator+=(const char* str);`
+-   `string& operator+=(const char c);`
+-   `string& operator+=(const string& str);`
+-   `string& append(const char *s);`
+-   `string& append(const char *s, int n); ` 把字符串s的前n个字符连接到当前字符串结尾
+-   `string& append(const string &s);`
+-   `string& append(const string &s, int pos, int n);`  字符串s中从pos开始的n个字符连接到字符串结尾
+```cpp
+/*一个汉字在UTF-8下占三个字节,如果取字符的字节范围在某个汉字中间则会出现乱码,
+故避免用string& append(const char *s, int n);和string& append(const string &s, int pos, int n);截取汉字*/
+    string s1 = "我";
+    cout << s1 << " 1" << endl;
+    s1 += "是";
+    cout << s1 << " 2" << endl;
+    s1 += 'b';
+    cout << s1 << " 3" << endl;
+    string s2 = "的";
+    s1 += s2;
+    cout << s1 << " 4" << endl;
+    s1.append("编");
+    cout << s1 << " 5" << endl;
+    s1.append("maker", 3);
+    cout << s1 << " 6" << endl;
+    s1.append(s2);
+    cout << s1 << " 7" << endl;
+    string s3 = "idsuper";
+    s1.append(s3, 2, 4);
+    cout << s1 << " 8" << endl;
+```
+#### 四：string查找与替换
+find从左往右找 rfind从右往左找
+-   `int find(const string& str, int pos = 0) const;   `              //查找str第一次出现位置,从pos开始查找
+-   `int find(const char* s, int pos = 0) const; `                    //查找s第一次出现位置,从pos开始查找
+-   `int find(const char* s, int pos, int n) const;  `                //从pos位置查找s的前n个字符第一次位置
+-   `int find(const char c, int pos = 0) const;  `                    //查找字符c第一次出现位置
+-   `int rfind(const string& str, int pos = npos) const;`             //查找str最后一次位置,从pos开始查找
+-   `int rfind(const char* s, int pos = npos) const;`                 //查找s最后一次出现位置,从pos开始查找
+-   `int rfind(const char* s, int pos, int n) const; `                //从pos查找s的前n个字符最后一次位置
+-   `int rfind(const char c, int pos = 0) const;`                     //查找字符c最后一次出现位置
+替换
+-   `string& replace(int pos, int n, const string& str);`             //替换从pos开始n个字符为字符串str，此处的n是指把原字符串中的n个字符替换，至于新字符串有多少个字符数则与n无关 如s1.replace(1,3,"1111");会将原1-4的字符换成1111
+-   `string& replace(int pos, int n,const char* s);`                  //替换从pos开始的n个字符为字符串s
+```cpp
+s.find("abc");   // 默认从 0 开始
+s.rfind("abc");  // 默认从末尾开始
+//当然也可以传入pos，指定位置开始
+```
+#### 五：string字符串比较
+字符串比较是按字符的ASCII码进行对比<br>
+一般指用于对比是否相等
+```text
+= 返回       0
+> 返回       1 
+< 返回      -1
+```
+-   `int compare(const string &s) const;`   //与字符串s比较
+-   `int compare(const char *s) const;`     //与字符串s比较   
+```cpp
+int ret = s1.compare(s2);
+int ret = s1.compare("hello");
+```
+#### 六：string字符串存取
+string中单个字符存取方式有两种：
+-   `char& operator[](int n);`        //通过[]方式取字符
+-   `char& at(int n);`                //通过at方法获取字符
+
+str.size()可以返回字符串长度
+```cpp
+//通过[]访问单个字符
+for(int i=0;i<s1.sizeof();i++>){
+    cout << s1[i] << " "; 
+}
+//通过at访问单个字符
+for(int i=0;i<s1.sizeof();i++>){
+    cout << s1.at(i) << " "; 
+}
+//通过[]修改单个字符
+s1.[0] = 'a';
+//通过at修改单个字符
+s1.at(0) = 'b';
+```
+#### 七：string字符串插入和删除
+-   `string& insert(int pos, const char* s);`                     //插入字符串
+-   `string& insert(int pos, const string& str);`                 //插入字符串
+-   `string& insert(int pos, int n, char c);`                     //在指定位置插入n个字符c
+-   `string& erase(int pos, int n = npos);`                       //删除从Pos开始的n个字符 
+#### 八：子串获取
+从字符串中获取想要的子串<br>
+`string substr(int pos = 0, int n = npos) const;`   //返回由pos开始的n个字符组成的字符串
+```cpp
+string s1 = "zzx58122@gmail.com";
+int pos = s1.find("@");
+string s2 = s1.substr(0,pos);
+//s2 = zzx58122
+```

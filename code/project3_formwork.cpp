@@ -47,7 +47,6 @@ void printarray2(MyArray<Person>& arr) {
     for (int i = 0;i < arr.getsize();i++) {
         cout << arr[i].m_name << " " << arr[i].m_age << endl;
     }
-
 }
 void test2() {
     MyArray <Person>arr4(10);
