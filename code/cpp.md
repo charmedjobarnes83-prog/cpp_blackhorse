@@ -87,6 +87,13 @@
     - [一：基本语法](#一基本语法-2)
     - [二：容器中存放自定义数据类型](#二容器中存放自定义数据类型)
     - [三：vector容器中嵌套vector容器](#三vector容器中嵌套vector容器)
+    - [四：vector的构造函数](#四vector的构造函数)
+    - [五：vector赋值操作](#五vector赋值操作)
+    - [六：vector容量和大小](#六vector容量和大小)
+    - [七：vector插入和删除](#七vector插入和删除)
+    - [八：vector数据存取](#八vector数据存取)
+    - [九：互换容器](#九互换容器)
+    - [十：预留空间](#十预留空间)
   - [string](#string)
     - [一：string构造函数](#一string构造函数)
     - [二：string赋值操作](#二string赋值操作)
@@ -3405,6 +3412,9 @@ MyArray.hpp 定义了一个“自己管理动态数组的模板类”，project3
 空间配置器
 ```
 ### vector 
+类似数组，又称单端数组<br>
+不同之处：数组是静态空间，而vector可以动态拓展<br>
+动态拓展：并不是在原空间之后续接新空间，而是找更大的内存空间，然后将原数据拷贝新空间，释放原空间
 #### 一：基本语法
 引用 #include <vector><br>
 把容器当做数组对待<br>
@@ -3413,7 +3423,7 @@ MyArray.hpp 定义了一个“自己管理动态数组的模板类”，project3
 #include <iostream>
 using namespace std;
 #include <string>
-#include <vector>
+#include <vector>   
 #include <algorithm>//标准算法头文件
 
 void myprint(int val);
@@ -3596,6 +3606,202 @@ int main() {
     test();
 }
 ```
+#### 四：vector的构造函数
+创建vector容器
+-   `vector<T> v; `               		            //采用模板实现类实现，默认构造函数
+-   `vector(v.begin(), v.end());   `                //将v[begin(), end())区间中的元素拷贝给本身。
+-   `vector(n, elem);`                              //构造函数将n个elem拷贝给本身。
+-   `vector(const vector &vec);`                    //拷贝构造函数。
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+#include <vector>
+#include <algorithm>//标准算法头文件
+
+void myprintf(vector<int>v) {
+    for (vector<int>::iterator it = v.begin();it < v.end();it++) {
+        cout << *it << " ";
+    }
+    cout << endl;
+}
+void myprintf1(vector<string>v) {
+    for (vector<string>::iterator it = v.begin();it < v.end();it++) {
+        cout << *it << " ";
+    }
+    cout << endl;
+}
+void test() {
+    vector<int> v1;//默认构造 无参构造
+    for (int i = 0;i < 10;i++) {
+        v1.push_back(i);
+    }
+    myprintf(v1);
+
+    //通过区间构造
+    vector<int> v2(v1.begin(), v1.end());
+    myprintf(v2);
+
+    //n个elem方式构造
+    vector<int> v3(7, 10);
+    // vector<int> v3(7, "elo");不对
+    myprintf(v3);
+    vector<string> v4(7, "elo");
+    //myprintf(v4);不对
+    myprintf1(v4);
+
+    //拷贝构造
+    vector<int> v5(v1);
+    myprintf(v5);
+}
+int main() {
+    test();
+}
+```
+#### 五：vector赋值操作
+给vector容器赋值
+-   `vector& operator=(const vector &vec);` //重载等号操作符
+-   `assign(beg, end);`                     //将[beg, end)区间中的数据拷贝赋值给本身。
+-   `assign(n, elem);`                      //将n个elem拷贝赋值给本身。
+```cpp
+#include <iostream>
+using namespace std;
+#include <string>
+#include <vector>
+#include <algorithm>//标准算法头文件
+
+void myprintf(vector<int>v) {
+    for (vector<int>::iterator it = v.begin();it < v.end();it++) {
+        cout << *it << " ";
+    }
+    cout << endl;
+}
+void test() {
+    vector<int> v1;
+    for (int i = 0;i < 10;i++) {
+        v1.push_back(i);
+    }
+    //重载等号操作符
+    vector<int> v2;
+    v2 = v1;
+    myprintf(v2);
+
+    //将[beg, end)区间中的数据拷贝赋值给本身
+    vector<int> v3;
+    v3.assign(v1.begin(), v1.end());
+    myprintf(v3);
+
+    //将n个elem拷贝赋值给本身
+    vector<int> v4;
+    v4.assign(5, 77);
+    myprintf(v4);
+}
+int main() {
+    test();
+}
+```
+#### 六：vector容量和大小
+对vector容器的容量和大小操作
+-   `empty(); `                             //判断容器是否为空
+-   `capacity();`                           //容器的容量
+-   `size();`                               //返回容器中元素的个数
+-   `resize(int num);`                      //重新指定容器的长度为num，若容器变长，则以默认值填充新位置。如果容器变短，则末尾超出容器长度的元素被删除。​					               
+-   `resize(int num, elem);`                //重新指定容器的长度为num，若容器变长，则以elem值填充新位置。如果容器变短，则末尾超出容器长度的元素被删除
+```cpp
+    vector<int> v1;
+    for (int i = 0;i < 10;i++) {
+        v1.push_back(i);
+    }
+    vector<int> v2;
+    if (v1.empty()) {
+        cout << "v1空" << endl;
+    }
+    else {
+        cout << "v1的容量为" << v1.capacity() << endl;
+        cout << "v1中元素个数为" << v1.size() << endl;
+    }
+    if (v2.empty()) {
+        cout << "v2空" << endl;
+    }
+    v1.resize(20);
+    cout << v1.size() << endl;
+    cout << v1.capacity() << endl;
+    v1.resize(22, 8);
+    v1.resize(5);
+```
+#### 七：vector插入和删除
+-   `push_back(ele);`                                         //尾部插入元素ele
+-   `pop_back();`                                            //删除最后一个元素
+-   `insert(const_iterator pos, ele);`                       //迭代器指向位置pos插入元素ele
+-   `insert(const_iterator pos, int count,ele);`            //迭代器指向位置pos插入count个元素ele
+-   `erase(const_iterator pos);`                            //删除迭代器指向的元素
+-   `erase(const_iterator start, const_iterator end);`      //删除迭代器从start到end之间的元素
+-   `clear();`                                               //删除容器中所有元素
+```cpp
+    v1.push_back(9);
+    v1.pop_back();
+    v1.insert(v1.begin(), 100);
+    v1.insert(v1.begin(), 3, 200);
+    v1.erase(v1.begin());
+    v1.erase(v1.begin(), v1.end());
+    v1.push_back(1000);
+    v1.clear();
+```
+#### 八：vector数据存取
+-   `at(int idx); `           //返回索引idx所指的数据
+-   `operator[]; `           //返回索引idx所指的数据
+-   `front(); `              //返回容器中第一个数据元素
+-   `back();`                //返回容器中最后一个数据元素
+```cpp
+    cout << v1.at(1) << " ";
+    cout << v1[1] << " ";
+    cout << v1.front() << " ";
+    cout << v1.back() << " ";
+```
+#### 九：互换容器
+实现两个容器内元素进行互换
+`swap(vec);`  // 将vec与本身的元素互换
+```cpp
+ vector<int> v1;
+    vector<int> v2;
+    for (int i = 0;i < 5;i++) {
+        v1.push_back(i);
+    }
+    for (int i = 5; i < 10;i++) {
+        v2.push_back(i);
+    }
+    v1.swap(v2);
+```
+#### 十：预留空间
+减少vector在动态扩展容量时的扩展次数
+`reserve(int len);`//容器预留len个元素长度，预留位置不初始化，元素不可访问。
+```cpp
+vector<int> v1;
+    v1.reserve(10000);
+    int num = 0;
+    int* p = nullptr;
+    for (int i = 0;i < 10000;i++) {
+        v1.push_back(i);
+        if (p != &v1[0]) {
+            p = &v1[0];
+            num++;
+        }
+    }
+    cout << num;
+    /*vector<int> v1;
+    int num = 0;
+    int* p = nullptr;
+    for (int i = 0;i < 10000;i++) {
+        v1.push_back(i);
+        if (p != &v1[0]) {
+            p = &v1[0];
+            num++;
+        }
+    }
+    cout << num;
+    */
+```
+&v1代表的是每次申请新空间的首地址，当预留的容量不够时，会申请一个更大的新空间，这也意味着&v1也在变化，通过num++实现了统计申请新空间次数
 
 ### string
 在此章节中：

@@ -4,26 +4,31 @@ using namespace std;
 #include <vector>
 #include <algorithm>//标准算法头文件
 
-
 void test() {
-    string s1 = "我";
-    cout << s1 << " 1" << endl;
-    s1 += "是";
-    cout << s1 << " 2" << endl;
-    s1 += 'b';
-    cout << s1 << " 3" << endl;
-    string s2 = "的";
-    s1 += s2;
-    cout << s1 << " 4" << endl;
-    s1.append("编");
-    cout << s1 << " 5" << endl;
-    s1.append("maker", 3);
-    cout << s1 << " 6" << endl;
-    s1.append(s2);
-    cout << s1 << " 7" << endl;
-    string s3 = "idsuper";
-    s1.append(s3, 2, 4);
-    cout << s1 << " 8" << endl;
+    vector<int> v1;
+    v1.reserve(10000);
+    int num = 0;
+    int* p = nullptr;
+    for (int i = 0;i < 10000;i++) {
+        v1.push_back(i);
+        if (p != &v1[0]) {
+            p = &v1[0];
+            num++;
+        }
+    }
+    cout << num;
+    /*vector<int> v1;
+    int num = 0;
+    int* p = nullptr;
+    for (int i = 0;i < 10000;i++) {
+        v1.push_back(i);
+        if (p != &v1[0]) {
+            p = &v1[0];
+            num++;
+        }
+    }
+    cout << num;
+    */
 }
 int main() {
     test();
