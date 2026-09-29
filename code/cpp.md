@@ -103,6 +103,53 @@
     - [六：string字符串存取](#六string字符串存取)
     - [七：string字符串插入和删除](#七string字符串插入和删除)
     - [八：子串获取](#八子串获取)
+  - [deque](#deque)
+    - [deque构造函数](#deque构造函数)
+    - [deque赋值操作](#deque赋值操作)
+    - [deque大小](#deque大小)
+    - [deque插入和删除](#deque插入和删除)
+    - [deque数据存取](#deque数据存取)
+    - [deque排序](#deque排序)
+  - [案例](#案例-1)
+  - [stack(栈)](#stack栈)
+  - [queue(队)](#queue队)
+  - [list(链表)](#list链表)
+    - [list接口](#list接口)
+      - [构造函数](#构造函数)
+      - [赋值和交换](#赋值和交换)
+      - [大小操作](#大小操作)
+      - [插入删除](#插入删除)
+      - [数据存取](#数据存取)
+      - [反转和排序](#反转和排序)
+      - [list案例：](#list案例)
+  - [set/multiset](#setmultiset)
+    - [set接口](#set接口)
+      - [set构造和赋值](#set构造和赋值)
+      - [set插入和删除](#set插入和删除)
+      - [set大小和交换](#set大小和交换)
+      - [set查找和统计](#set查找和统计)
+      - [set和multiset区别](#set和multiset区别)
+      - [pair对组创建](#pair对组创建)
+      - [set容器排序](#set容器排序)
+  - [map/multimap](#mapmultimap)
+    - [map接口](#map接口)
+      - [map构造和赋值](#map构造和赋值)
+      - [map插入和删除](#map插入和删除)
+      - [map大小和交换](#map大小和交换)
+      - [map查找和统计](#map查找和统计)
+      - [map容器排序](#map容器排序)
+    - [map/set补充](#mapset补充)
+  - [STL函数对象](#stl函数对象)
+    - [函数对象](#函数对象)
+    - [谓词](#谓词)
+    - [内建函数对象](#内建函数对象)
+      - [算术仿函数](#算术仿函数)
+      - [关系仿函数](#关系仿函数)
+      - [逻辑仿函数](#逻辑仿函数)
+  - [STL常用算法](#stl常用算法)
+    - [遍历](#遍历)
+      - [for\_each](#for_each)
+      - [transform](#transform)
 
 
 ```text
@@ -3411,6 +3458,10 @@ MyArray.hpp 定义了一个“自己管理动态数组的模板类”，project3
 适配器
 空间配置器
 ```
+```text
+随机访问的容器:vector deque string array   可以++ -- == +n -n < >
+双向访问的容器:list set map  只能++ -- == != 不可用+n/-n/</>
+```
 ### vector 
 类似数组，又称单端数组<br>
 不同之处：数组是静态空间，而vector可以动态拓展<br>
@@ -3705,7 +3756,7 @@ int main() {
 -   `empty(); `                             //判断容器是否为空
 -   `capacity();`                           //容器的容量
 -   `size();`                               //返回容器中元素的个数
--   `resize(int num);`                      //重新指定容器的长度为num，若容器变长，则以默认值填充新位置。如果容器变短，则末尾超出容器长度的元素被删除。​					               
+-   `resize(int num);`                      //重新指定容器的长度为num，若容器变长，则以默认值填充新位置。如果容器变短，则末尾超出容器长度的元素被删除。​					             
 -   `resize(int num, elem);`                //重新指定容器的长度为num，若容器变长，则以elem值填充新位置。如果容器变短，则末尾超出容器长度的元素被删除
 ```cpp
     vector<int> v1;
@@ -3947,4 +3998,856 @@ string s1 = "zzx58122@gmail.com";
 int pos = s1.find("@");
 string s2 = s1.substr(0,pos);
 //s2 = zzx58122
+```
+
+### deque
+双端数组，可以对头部或者尾部进行插入删除操作<br>
+与vector对比:
+```text
+vector对于头部的插入删除效率低，数据量越大，效率越低
+deque相对而言，对头部的插入删除速度回比vector快
+vector访问元素时的速度会比deque快,这和两者内部实现有关
+```
+内部工作原理:
+```text
+deque内部有中控器，中控器中维护的是每个缓冲区的地址，缓冲区中存放真实数据
+缓冲区写满后，再往头或尾插入数据，会申请新的缓冲区存放数据，对应的中控器中也会写入此新区域的地址
+```
+deque容器的迭代器是支持随机访问的，可以跳跃性的访问元素
+#### deque构造函数
+-   `deque<T>` deqT;                      //默认构造形式
+-   `deque(beg, end);`                  //构造函数将[beg, end)区间中的元素拷贝给本身。
+-   `deque(n, elem);`                    //构造函数将n个elem拷贝给本身。
+-   `deque(const deque &deq);`          //拷贝构造函数
+```cpp
+    deque<int> d1;
+    for (int i = 0;i < 5;i++) {
+        d1.push_back(i);
+    }
+    deque<int> d2(d1.begin(), d1.end());
+    deque<int> d3(5, 10);
+    deque<int> d4 = d1;
+```
+#### deque赋值操作
+-   `deque& operator=(const deque &deq); `         //重载等号操作符
+-   `assign(beg, end);`                             //将[beg, end)区间中的数据拷贝赋值给本身。
+-   `assign(n, elem);`                              //将n个elem拷贝赋值给本身。
+```cpp
+    for (int i = 0;i < 5;i++) {
+        d1.push_back(i);
+    }
+    d2 = d1;
+    d3.assign(d1.begin(), d1.end());
+    d4.assign(5, 10);
+```
+#### deque大小
+deque和vetor不同，deque没有容量的概念
+-   `deque.empty();`                       //判断容器是否为空
+-   `deque.size();`                         //返回容器中元素的个数
+-   `deque.resize(num);`                //重新指定容器的长度为num,若容器变长，则以默认值填充新位置。//如果容器变短，则末尾超出容器长度的元素被删除。
+-   `deque.resize(num, elem);`     //重新指定容器的长度为num,若容器变长，则以elem值填充新位置。//如果容器变短，则末尾超出容器长度的元素被删除。
+```cpp
+    for (int i = 0;i < 5;i++) {
+        d1.push_back(i);
+    }
+    if (d1.empty()) {
+        cout << "d1空" << endl;
+    }
+    else {
+        cout << "size:" << d1.size() << endl;
+    }
+    d1.resize(10);
+    d1.resize(5);
+    d1.resize(10, 6);
+```
+#### deque插入和删除
+两端插入操作：
+-   `push_back(elem);`          //在容器尾部添加一个数据
+-   `push_front(elem);`        //在容器头部插入一个数据
+-   `pop_back();`                   //删除容器最后一个数据
+-   `pop_front();`                 //删除容器第一个数据
+指定位置操作：
+-   `insert(pos,elem);`         //在pos位置插入一个elem元素的拷贝，返回新数据的位置。
+-   `insert(pos,n,elem);`     //在pos位置插入n个elem数据，无返回值。
+-   `insert(pos,beg,end);`    //在pos位置插入[beg,end)区间的数据，无返回值。
+-   `clear();`                           //清空容器的所有数据
+-   `erase(beg,end);`             //删除[beg,end)区间的数据，返回下一个数据的位置。
+-   `erase(pos);`                    //删除pos位置的数据，返回下一个数据的位置。
+```cpp
+    deque<int> d1;
+    deque<int> d2;
+    for (int i = 0;i < 5;i++) {
+        d1.push_back(i);
+    }
+    d2 = d1;
+    d1.insert(d1.begin(), 9);
+    d1.insert(d1.begin(), 5, 8);
+    d2.insert(d2.begin(), d1.begin(), d1.end());
+    d2.erase(d2.begin());
+    d2.erase(d2.begin(), d2.end());
+    //最后两行不能交换顺序执行，因为不能删除一个不存在的元素，但是对于空容器，d1.begin()是合法的
+```
+#### deque数据存取
+-   `at(int idx); `     //返回索引idx所指的数据
+-   `operator[]; `      //返回索引idx所指的数据
+-   `front(); `            //返回容器中第一个数据元素
+-   `back();`              //返回容器中最后一个数据元素
+```cpp
+    for (int i = 0;i < 5;i++) {
+        d1.push_back(i);
+    }
+    cout << d1.at(1) << endl;
+    cout << d1[1] << endl;
+    cout << d1.front() << endl;
+    cout << d1.back() << endl;
+```
+#### deque排序
+利用算法实现对deque容器进行排序,*使用sort算法时记得包含头文件 #include <algorithm>*<br>
+`sort(iterator beg, iterator end)`  //对beg和end区间内元素进行排序<br>
+```cpp 
+    d1.push_back(19);
+    d1.push_back(11);
+    d1.push_back(20);
+    d1.push_back(3);
+    sort(d1.begin(), d1.end());
+```
+### 案例
+[project4_stl_1.cpp 源码](./project4_stl_1.cpp)
+
+### stack(栈)
+一个出口，先进后出
+```text
+入栈-push
+出栈-pop
+```
+常用接口
+```text
+stack<T> stk;//stack采用模板类实现，stcak对象的默认构造形式
+stack(const stack &stk);//拷贝构造函数
+stack &operator=(const stack &stk);//重载=
+push(elm);//向栈顶添加元素
+pop();//从栈顶移除第一个元素
+top();//返回栈顶元素
+empty();//判断堆栈是否为空
+size();//返回栈的大小
+```
+
+### queue(队)
+两个出口，先进先出
+```text
+入队-push
+出队-pop
+
+队列容器允许从一端新增元素，从另一端移除元素
+队列中只有队头和队尾才可被外界使用，因此无法遍历
+```
+常用接口
+```text
+栈容器常用的对外接口
+queue<T> que;//queue采用模板实现，queue对象的默认构造形式
+queue(const queue &que);//拷贝构造
+queue &operator=(const queue &que);//重载=
+push(elm);//往队尾添加元素
+pop();//从队头移除第一个元素
+back();//返回最后一个元素
+front();//返回第一个元素
+empty();//判断队列是否为空
+size();//返回队列大小
+```     
+
+### list(链表)
+将数据进行链式储存
+```text
+链表list是一种物理存储单元上非连续的存储结构，数据元素的逻辑顺序是通过链表中的指针链接实现的
+链表由一系列结点组成
+结点组成(两部分)：存储数据元素的数据域、存储下一个结点地址的指针域
+由于链表的存储方式并不是连续的内存空间，因此链表list中的迭代器只支持前移和后移，属于双向迭代器,不可以跳跃访问
+List有一个重要的性质，插入操作和删除操作都不会造成原有list迭代器的失效，这在vector是不成立的。
+```
+链表优点
+```text
+采用动态存储分配，不会造成内存浪费和溢出
+执行插入和删除操作十分方便，修改指针即可，不需要移动大量元素
+```
+链表缺点
+```text
+链表灵活，但是空间(指针域)和时间(遍历)额外耗费较大
+```
+#### list接口
+##### 构造函数
+```text
+`list<T> lst;`                               //list采用采用模板类实现,对象的默认构造形式：
+`list(beg,end);`                             //构造函数将[beg, end)区间中的元素拷贝给本身。
+`list(n,elem);`                             //构造函数将n个elem拷贝给本身。
+`list(const list &lst);`                    //拷贝构造函数。
+```
+```cpp
+    list<int>L1;
+	L1.push_back(10);
+	L1.push_back(20);
+	L1.push_back(30);
+	L1.push_back(40);
+	list<int>L2(L1.begin(),L1.end());
+	list<int>L3(L2);
+	list<int>L4(10, 1000);
+```
+##### 赋值和交换
+```text
+`assign(beg, end);`                         //将[beg, end)区间中的数据拷贝赋值给本身。
+`assign(n, elem);`                           //将n个elem拷贝赋值给本身。
+`list& operator=(const list &lst);`         //重载等号操作符
+`swap(lst);`                                 //将lst与本身的元素互换。
+```
+##### 大小操作
+```text
+`size(); `                              //返回容器中元素的个数
+`empty(); `                             //判断容器是否为空
+`resize(num);`                          //重新指定容器的长度为num，若容器变长，则以默认值填充新位置。//如果容器变短，则末尾超出容器长度的元素被删除。
+`resize(num, elem); `                   //重新指定容器的长度为num，若容器变长，则以elem值填充新位置。//如果容器变短，则末尾超出容器长度的元素被删除。
+```
+##### 插入删除
+```text
+push_back(elem);            //在容器尾部加入一个元素
+pop_back();                 //删除容器中最后一个元素
+push_front(elem);           //在容器开头插入一个元素
+pop_front();                //从容器开头移除第一个元素
+insert(pos,elem);           //在pos位置插elem元素的拷贝，返回新数据的位置。
+insert(pos,n,elem);         //在pos位置插入n个elem数据，无返回值。
+insert(pos,beg,end);        //在pos位置插入[beg,end)区间的数据，无返回值。
+clear();                    //移除容器的所有数据
+erase(beg,end);             //删除[beg,end)区间的数据，返回下一个数据的位置。
+erase(pos);                 //删除pos位置的数据，返回下一个数据的位置。
+remove(elem);               //删除容器中所有与elem值匹配的元素。
+```
+```cpp
+    list<int> L;
+    L.push_back(10);
+    L.push_back(20);
+    L.push_back(30);
+    L.push_front(100);
+	L.push_front(200);
+	L.push_front(300);
+    L.pop_back();
+    L.pop_front();
+
+    list<int>::iterator it = L.begin();
+	L.insert(++it, 1000);
+
+    it = L.begin();
+	L.erase(++it);
+
+    L.push_back(10000);
+	L.push_back(10000);
+	L.push_back(10000);
+	L.remove(10000);
+
+    L.clear();
+```
+##### 数据存取
+```text
+`front();`        //返回第一个元素。
+`back();`         //返回最后一个元素。
+```
+```cpp
+    list<int>L1;
+	L1.push_back(10);
+	L1.push_back(20);
+	L1.push_back(30);
+	L1.push_back(40);
+
+	//cout << L1.at(0) << endl;//错误 不支持at访问数据
+	//cout << L1[0] << endl; //错误  不支持[]方式访问数据
+	cout << "第一个元素为： " << L1.front() << endl;
+	cout << "最后一个元素为： " << L1.back() << endl;
+
+	//list容器的迭代器是双向迭代器，不支持随机访问
+	list<int>::iterator it = L1.begin();
+	//it = it + 1;//错误，不可以跳跃访问，即使是+1
+    //即只能一格格走，++it --it 不可以it = it + 10
+```
+##### 反转和排序
+```text
+`reverse();`   //反转链表
+`sort();`        //链表排序
+```
+```cpp
+bool myCompare(int val1 , int val2)
+{
+    //降序 ：就让 第一个数 > 第二个数
+	return val1 > val2;
+}
+void test01()
+{
+    list<int> L;
+	L.push_back(90);
+	L.push_back(30);
+	L.push_back(20);
+	L.push_back(70);
+    //反转容器的元素
+	L.reverse();
+    //排序
+    //所以不支持随机访问迭代器的容器，不可以使用标准算法  对比deque的sort排序 sort(d1.begin(),d1.end());
+    //不支持随机访问迭代器的容器内部会提供一些对应算法，L.sort();
+	L.sort(); //默认的排序规则 从小到大
+    L.sort(myCompare); //指定规则，从大到小
+    //或者用内置的方法  L.sort(greater<int>());
+}
+```
+##### list案例：
+ [project5_stl_2.cpp 源码](./project5_stl_2.cpp)
+
+### set/multiset
+所有元素都会在插入时自动被排序<br>
+set/multiset属于关联式容器，底层结构是用二叉树实现。<br>
+set的迭代器是双向迭代器，不支持随机访问，可用!=,不可用< 或 it+1
+```text
+差别：
+    set不允许容器中有重复的元素
+    multiset允许容器中有重复的元素
+```
+#### set接口
+##### set构造和赋值
+```text
+构造:
+set<T> st;                          //默认构造函数：
+set(const set &st);                 //拷贝构造函数
+赋值:
+set& operator=(const set &st);      //重载等号操作符
+```
+```cpp
+    set<int> s1;
+    s1.insert(1);
+    set<int> s2(s1);
+    set<int> s3 = s1;
+```
+##### set插入和删除
+```text
+set容器插入数据的数据会自动排序
+
+`insert(elem);`             //在容器中插入元素。
+`clear();`                    //清除所有元素
+`erase(pos);`               //删除pos迭代器所指的元素，返回下一个元素的迭代器。
+`erase(beg, end);`          //删除区间[beg,end)的所有元素 ，返回下一个元素的迭代器。
+`erase(elem);`               //删除容器中值为elem的元素。
+```
+```cpp
+    s1.insert(1);
+    s1.clear();
+    s2.erase(s2.begin());
+    s3.erase(s3.begin(), s3.end());
+    s4.erase(5);
+```
+##### set大小和交换
+```text
+`size();`          //返回容器中元素的数目
+`empty();`        //判断容器是否为空
+`swap(st);`      //交换两个集合容器
+```
+##### set查找和统计
+```text
+`find(key);`             //查找key是否存在,若存在，返回该键的元素的迭代器；若不存在，返回set.end();
+`count(key);`            //统计key的元素个数
+```
+```cpp
+    set<int> s1;
+	s1.insert(10);
+	s1.insert(30);
+	s1.insert(20);
+
+    if (pos != s1.end())
+	{
+		cout << "找到了元素 ： " << *pos << endl;
+	}
+	else
+	{
+		cout << "未找到元素" << endl;
+	}
+    int num = s1.count(30);
+    //对于set来说，count的结果只会是1或0
+```
+##### set和multiset区别
+```text
+set不可以插入重复数据，而multiset可以
+set插入数据的同时会返回插入结果，表示插入是否成功
+multiset不会检测数据，因此可以插入重复数据
+```
+```cpp
+    set<int> s;
+    pair<set<int>::iterator, bool>  ret = s.insert(10);
+    //ret.second = true
+    ret = s.insert(10);
+    //ret.second = false因为set不能重复插入相同数据
+
+    multiset<int> ms;
+    ms.insert(10);
+    ms.insert(10);
+    //multiset可以重复插入相同数据
+```
+##### pair对组创建
+```text
+成对出现的数据，利用对组可以返回两个数据
+创建方式：
+    `pair<type, type> p ( value1, value2 );`
+    `pair<type, type> p = make_pair( value1, value2 );`
+```
+```cpp
+    pair<string, int> p("Tom", 20);
+	cout << "姓名： " <<  p.first << " 年龄： " << p.second << endl;
+    //记第一种方法即可
+	pair<string, int> p2 = make_pair("Jerry", 10);
+	cout << "姓名： " << p2.first << " 年龄： " << p2.second << endl;
+```
+##### set容器排序
+```text
+set容器默认排序规则为从小到大
+利用仿函数可以修改排序规则
+```
+```cpp
+class MyCompare
+{
+public:
+    bool operator()(int v1, int v2) const{
+        return v1 > v2;
+    }
+};
+void test01()
+{
+    set<int> s1;
+    s1.insert(10);
+    s1.insert(40);
+    s1.insert(20);
+    s1.insert(30);
+    s1.insert(50);
+    //默认从小到大
+
+    //指定排序规则
+    set<int, MyCompare> s2;
+    s2.insert(10);
+    s2.insert(40);
+    s2.insert(20);
+    s2.insert(30);
+    s2.insert(50);
+    //规定从大到小
+}
+```
+```cpp
+//自定义数据类型，set必须指定排序规则才可以插入数据
+class Person
+{
+public:
+	Person(string name, int age)
+	{
+		this->m_Name = name;
+		this->m_Age = age;
+	}
+
+	string m_Name;
+	int m_Age;
+};
+class comparePerson
+{
+public:
+	bool operator()(const Person& p1, const Person &p2) const
+{
+		//按照年龄进行排序  降序
+		return p1.m_Age > p2.m_Age;
+	}
+};
+void test01()
+{
+	set<Person, comparePerson> s;
+
+	Person p1("刘备", 23);
+	Person p2("关羽", 27);
+	Person p3("张飞", 25);
+	Person p4("赵云", 21);
+	s.insert(p1);
+	s.insert(p2);
+	s.insert(p3);
+	s.insert(p4);
+	for (set<Person, comparePerson>::iterator it = s.begin(); it != s.end(); it++)
+	{
+		cout << "姓名： " << it->m_Name << " 年龄： " << it->m_Age << endl;
+	}
+}
+```
+
+### map/multimap
+map中所有元素都是pair<br>
+pair中第一个元素为key（键值），起到索引作用，第二个元素为value（实值）<br>
+所有元素都会根据元素的键值自动排序<br>
+map/multimap属于**关联式容器**，底层结构是用二叉树实现<br>
+map和multimap区别
+```text
+map不允许容器中有重复key值元素
+multimap允许容器中有重复key值元素
+```
+#### map接口
+##### map构造和赋值
+```text
+`map<T1, T2> mp;`                     //map默认构造函数: 
+`map(const map &mp);`               //拷贝构造函数
+`map& operator=(const map &mp);`    //重载等号操作符
+```
+```cpp
+    map<int,int> m1;
+    m1.insert(pair<int,int>(10,20));
+    map(int,int)m2(m1);
+    map(int,int)m3;
+    m3 = m1;
+```
+##### map插入和删除
+```text
+map中所有元素都是成对出现，插入数据时候要使用对组
+
+`insert(elem);`                 //在容器中插入元素。
+`clear();`                    //清除所有元素
+`erase(pos);`                //删除pos迭代器所指的元素，返回下一个元素的迭代器。
+`erase(beg, end);`          //删除区间[beg,end)的所有元素 ，返回下一个元素的迭代器。
+`erase(key);`               //删除容器中值为key的元素。
+```
+```cpp
+    map<int, int> m1;
+    m1.insert(pair<int, int>(10, 20));
+    m1.insert(pair<int, int>(30, 90));
+    m1.insert(pair<int, int>(60, 70));
+    map<int, int> m2;
+    map<int, int> m3(m1);
+    map<int, int> m4(m1);
+    m2 = m1;
+    m1.clear();
+    m2.erase(m2.begin());
+    m3.erase(m3.begin(), m3.end());
+    m4.erase(30);
+```
+##### map大小和交换
+```text
+`size();`           //返回容器中元素的数目
+`empty();`          //判断容器是否为空
+`swap(st);`         //交换两个集合容器
+```
+##### map查找和统计
+```text
+`find(key);`                  //查找key是否存在,若存在，返回该键的元素的迭代器；若不存在，返回set.end();
+`count(key);`                //统计key的元素个数
+```
+```cpp
+map<int, int>m; 
+	m.insert(pair<int, int>(1, 10));
+	m.insert(pair<int, int>(2, 20));
+	m.insert(pair<int, int>(3, 30));
+
+	//查找
+	map<int, int>::iterator pos = m.find(3);
+    if (pos != m.end()){
+        cout << "找到了元素 key = " << (*pos).first << " value = " << (*pos).second << endl;}
+    else{
+        cout << "未找到元素" << endl;}
+    //没找到返回m.end()但没有意义
+
+    //统计
+    int num = m.count(3);
+```
+##### map容器排序
+```text
+map容器默认排序规则为 按照key值进行 从小到大排序
+利用仿函数，可以改变排序规则    
+对于自定义数据类型，map必须要指定排序规则,同set容器
+```
+```cpp
+class MyCompare {
+public:
+	bool operator()(int v1, int v2) const {
+		return v1 > v2;
+	}
+};
+
+void test01() 
+{
+	//默认从小到大排序
+	//利用仿函数实现从大到小排序
+	map<int, int, MyCompare> m;
+	m.insert(make_pair(1, 10));
+	m.insert(make_pair(2, 20));
+	m.insert(make_pair(3, 30));
+	m.insert(make_pair(4, 40));
+	m.insert(make_pair(5, 50));
+	for (map<int, int, MyCompare>::iterator it = m.begin(); it != m.end(); it++) {
+		cout << "key:" << it->first << " value:" << it->second << endl;
+	}
+}
+```
+#### map/set补充
+但凡涉及map/multimap/set/multiset，operator()一律要加const，因为底层是红黑树<br>
+干脆所有operotor()都加上const
+```cpp
+bool operator()(int v1, int v2) const {
+		return v1 > v2;
+	}
+```
+
+### STL函数对象
+#### 函数对象
+重载函数调用操作符的类，其对象称作函数对象<br>
+函数对象使用重载的()时，行为类似函数调用，因此也称作仿函数<br>
+本质上函数对象(仿函数)是一个类，而非一个函数
+```text
+函数对象在使用时，可以像普通函数那样调用, 可以有参数，可以有返回值
+函数对象超出普通函数的概念，函数对象可以有自己的状态
+函数对象可以作为参数传递
+```
+```cpp
+class myid {
+public:
+    int operator()(int v1, int v2) {
+        return v1 + v2;
+    }
+};
+class myprint {
+public:
+    myprint() {
+        this->count = 0;
+    }
+    void operator()(string s) {
+        cout << s << endl;
+        this->count++;
+    }
+    int count;
+};
+void doprint(myprint& m, string s) {
+    m(s);
+}
+void test01()
+{
+    //1、函数对象在使用时，可以像普通函数那样调用，可以有参数可以有返回值
+    myid m1;
+    cout << m1(10, 20) << endl;
+    //2、函数对象超出普通函数概念，函数对象可以有自己的状态
+    myprint m2;
+    m2("hello");
+    m2("hello");
+    m2("hello");
+    cout << m2.count << endl;//函数对象自己的状态
+    //3、函数对象可以作为参数传递
+    myprint m3;
+    doprint(m3, "world");
+}
+```
+#### 谓词
+返回bool类型的仿函数称为谓词
+```text
+如果operator()接受一个参数，那么叫做一元谓词
+如果operator()接受两个参数，那么叫做二元谓词
+```
+```cpp
+//一元谓词
+struct GreatFive {
+    bool operator()(int val) {
+        return val > 5;
+    }
+};
+void test01()
+{
+    vector<int> v1;
+    for (int i = 0;i < 9;i++) {
+        v1.push_back(i);
+    }
+    //GreatFive()匿名的函数对象,正常的函数对象GreatFive g1; 
+    //查找容器中有没有＞5的元素，find_if返回迭代器
+    vector<int>::iterator it = find_if(v1.begin(), v1.end(), GreatFive());
+    if (it == v1.end()) {
+        cout << "fail" << endl;
+    }
+    else {
+        cout << *it << endl;
+    }
+}
+```
+```cpp
+//二元谓词
+class mycompare {
+public:
+    bool operator()(int val1, int val2) {
+        return val1 > val2;
+    }
+};
+void test01()
+{
+    vector<int> v1;
+    v1.push_back(20);
+    v1.push_back(40);
+    v1.push_back(70);
+    v1.push_back(10);
+    v1.push_back(50);
+    sort(v1.begin(), v1.end());
+    for (vector<int>::iterator it = v1.begin(); it < v1.end();it++) {
+        cout << *it << " ";
+    }
+    cout << endl;
+    //使用函数对象，改变排序规则
+    sort(v1.begin(), v1.end(), mycompare());
+    for (vector<int>::iterator it = v1.begin(); it < v1.end();it++) {
+        cout << *it << " ";
+    }
+    cout << endl;
+}
+```
+#### 内建函数对象
+STL内建了一些函数对象<br>
+这些仿函数所产生的对象，用法和一般函数完全相同<br>
+使用内建函数对象，需要引入头文件 `#include<functional>`<br>
+```text
+算术仿函数
+关系仿函数
+逻辑仿函数
+```
+##### 算术仿函数
+```text
+实现四则运算,其中negate是一元运算，其他都是二元运算
+
+`template<class T> T plus<T>`                //加法仿函数
+`template<class T> T minus<T>`              //减法仿函数
+`template<class T> T multiplies<T>`         //乘法仿函数
+`template<class T> T divides<T>`             //除法仿函数
+`template<class T> T modulus<T>`            //取余仿函数
+`template<class T> T negate<T>`             //取反仿函数
+```
+```cpp
+#include <functional>
+void test01()
+{
+    negate<int> n;
+    plus<int> p;
+    minus<int> m1;
+    multiplies<int> m2;
+    divides<int> d;
+    modulus<int> m3;
+}
+```
+##### 关系仿函数
+```text
+`template<class T> bool equal_to<T>`                    //等于
+`template<class T> bool not_equal_to<T>`            //不等于
+`template<class T> bool greater<T>`                      //大于
+`template<class T> bool greater_equal<T>`          //大于等于
+`template<class T> bool less<T>`                           //小于
+`template<class T> bool less_equal<T>`               //小于等于
+```
+```cpp
+sort(v1.begin(), v1.end(), greater<int>()); //STL内建仿函数：>仿函数
+/*自己实现仿函数
+sort(v1.begin(), v1.end(), mycompare());
+class mycompare {
+public:
+    bool operator()(int v1, int v2) {
+        return v1 > v2;
+    }
+};*/
+```
+##### 逻辑仿函数
+```text
+`template<class T> bool logical_and<T>`              //逻辑与
+`template<class T> bool logical_or<T>`                //逻辑或
+`template<class T> bool logical_not<T>`              //逻辑非
+```
+```cpp
+    vector<bool> v1;
+    v1.push_back(true);
+    v1.push_back(true);
+    v1.push_back(false);
+    v1.push_back(true);
+    for (vector<bool>::iterator it = v1.begin();it < v1.end();it++) {
+        cout << *it << " ";
+    }
+    // 1 1 0 1
+    cout << endl;
+    vector<bool> v2;
+    v2.resize(v1.size());
+    transform(v1.begin(), v1.end(), v2.begin(), logical_not<bool>());
+    //transform 标准库算法：把一个区间里的每个元素挨个套用你给的运算，结果写到目标位置
+    //用法：transform(源起, 源止, 目标起点, 运算);
+    for (vector<bool>::iterator it = v2.begin();it < v2.end();it++) {
+        cout << *it << " ";
+    }
+    cout << endl;
+    // 0 0 1 0
+```
+### STL常用算法
+#### 遍历
+##### for_each
+for_each(iterator begin,iterator end,_func);<br>
+实现遍历容器
+```text
+遍历算法 遍历容器元素
+begin 开始迭代器
+end 结束迭代器
+_func 函数或者函数对象
+```
+```cpp
+#include <algorithm>
+void print01(int val) {
+    cout << val << " ";
+}
+class print02 {
+public:
+    void operator()(int val) {
+        cout << val << " ";
+    }
+};
+void test01()
+{
+    vector<int> v1;
+    for (int i = 0;i < 10;i++) {
+        v1.push_back(i);
+    }
+    //_func为函数
+    for_each(v1.begin(), v1.end(), print01);
+    //_func为函数对象
+    for_each(v1.begin(), v1.end(), print02());
+}
+```
+##### transform
+transform(iterator beg1, iterator end1, iterator beg2, _func);<br>
+搬运容器到另一个容器中,搬运的目标容器必须要提前开辟空间，否则无法正常搬运
+```text
+beg1 源容器开始迭代器
+end1 源容器结束迭代器
+beg2 目标容器开始迭代器
+_func 函数或者函数对象
+```
+```cpp
+class Transform {
+public:
+    int operator()(int val) {
+        return val;
+    }
+};
+int Transform1(int val) {
+    return val;
+}
+class myprint {
+public:
+    void operator()(int val) {
+        cout << val << " ";
+    }
+};
+void print1(int val) {
+    cout << val << " ";
+}
+void test01()
+{
+    vector<int> v1;
+    for (int i = 0;i < 10;i++) {
+        v1.push_back(i);
+    }
+    vector<int> v2;
+    vector<int> v3;
+    v2.resize(v1.size());//目标容器需要提前开辟空间
+    v3.resize(v1.size());
+
+    transform(v1.begin(), v1.end(), v2.begin(), Transform());//_func是函数对象
+    for_each(v2.begin(), v2.end(), myprint());
+    transform(v1.begin(), v1.end(), v3.begin(), Transform1);//_func是函数
+    for_each(v3.begin(), v3.end(), myprint());
+}
 ```
