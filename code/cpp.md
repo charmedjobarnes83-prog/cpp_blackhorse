@@ -150,6 +150,30 @@
     - [遍历](#遍历)
       - [for\_each](#for_each)
       - [transform](#transform)
+    - [查找](#查找)
+      - [find](#find)
+      - [find\_if](#find_if)
+      - [adjacent\_find](#adjacent_find)
+      - [binary\_search](#binary_search)
+      - [count](#count)
+      - [count\_if](#count_if)
+    - [排序](#排序)
+      - [sort](#sort)
+      - [random\_shuffle](#random_shuffle)
+      - [merge](#merge)
+      - [reverse](#reverse)
+    - [拷贝\&替换](#拷贝替换)
+      - [copy](#copy)
+      - [replace](#replace)
+      - [replace\_if](#replace_if)
+      - [swap](#swap)
+    - [算术生成算法](#算术生成算法)
+      - [accumulate](#accumulate)
+      - [fill](#fill)
+    - [集合算法](#集合算法)
+      - [set\_intersection](#set_intersection)
+      - [set\_union](#set_union)
+      - [set\_difference](#set_difference)
 
 
 ```text
@@ -4850,4 +4874,607 @@ void test01()
     transform(v1.begin(), v1.end(), v3.begin(), Transform1);//_func是函数
     for_each(v3.begin(), v3.end(), myprint());
 }
+```
+#### 查找
+- `find`                     //查找元素
+- `find_if`               //按条件查找元素
+- `adjacent_find`    //查找相邻重复元素
+- `binary_search`    //二分查找法
+- `count`                   //统计元素个数
+- `count_if`             //按条件统计元素个数
+##### find
+查找指定元素，找到返回指定元素的迭代器，找不到返回结束迭代器end()<br>
+find(iterator begin,iterator end,value);
+```text
+beg 开始迭代器
+end 结束迭代器
+value 查找的元素
+```
+```cpp
+    vector<int> v1;
+    for (int i = 0;i < 10;i++) {
+        v1.push_back(i + 1);
+    }
+    vector<int>::iterator it1 = find(v1.begin(), v1.end(), 5);
+    if (it1 == v1.end()) {
+        cout << "false" << endl;
+    }
+    else {
+        cout << *it1 << endl;
+    }
+```
+```cpp
+//查找存放自定义数据类型容器中的元素
+//先重载==运算符
+class Person {
+public:
+    Person(string name, int age) {
+        this->m_age = age;
+        this->m_name = name;
+    }
+    int m_age;
+    string m_name;
+    bool operator==(const Person& p) const{
+        if (this->m_name == p.m_name && this->m_age == p.m_age) {
+            return true;
+        }
+        return false;
+    }
+};
+void test01()
+{
+    vector<Person> v2;
+    Person p1("zzx", 22);
+    Person p2("mike", 30);
+    Person p3("jack", 23);
+    v2.push_back(p1);
+    v2.push_back(p2);
+    v2.push_back(p3);
+    vector<Person>::iterator it2 = find(v2.begin(),v2.end(),p2);
+     if (it2 == v2.end()) {
+        cout << "false" << endl;
+    }
+    else {
+        cout << it2->m_age << " " << it2->m_name << endl;
+    }
+
+}
+```
+##### find_if
+按值查找元素，找到返回指定位置迭代器，找不到返回结束迭代器位置 <br>
+find_if(iterator begin(),iterator end(),_Pred);
+```text
+beg 开始迭代器
+end 结束迭代器
+_Pred 函数或者谓词（返回bool类型的仿函数）
+```
+```cpp
+class mycompare01{
+public:
+    bool operator()(int val){
+        return val>5;
+    }
+};
+bool mycompare02(int val){
+    return val > 5;
+}
+void test01()
+{
+    vector<int> v;
+    vector<int> v1;
+	for (int i = 0; i < 10; i++) {
+		v.push_back(i + 1);
+	}
+    v1 = v;
+	vector<int>::iterator it = find_if(v.begin(), v.end(), mycompare01());      
+    vector<int>::iterator it1 = find_if(v1.begin(), v.end(), mycompare02);    
+    if(it == v.end()){
+        cout <<"false" << endl;
+    }
+    else{
+        cout << *it << endl;
+    }
+     if(it1 == v1.end()){
+        cout <<"false" << endl;
+    }
+    else{
+        cout << *it1 << endl;
+    } 
+}
+```
+```cpp
+//自定义数据类型
+class Person{
+public:
+    Person(string name,int age){
+        this->m_age = age;
+        this->m_name = name;
+    }
+    int m_age;
+    string m_name;
+};
+class mycompare11{
+public:
+    bool operator()(Person &p){
+        return p.m_age > 5;
+    }
+};
+bool mycompare12(Person &p){
+    return p.m_age > 5;
+}
+void test01()
+{
+    Person p1("aaqa",20);
+    Person p2("bbb",2);
+    Person p3("c",34);
+    vector<Person> v2;
+    v2.push_back(p1);
+    v2.push_back(p2);
+    v2.push_back(p3);
+    vector<Person>::iterator it2 = find_if(v2.begin(),v2.end(),mycompare11());
+    vector<Person>::iterator it3 = find_if(v2.begin(),v2.end(),mycompare12);  
+}
+```
+##### adjacent_find
+查找相邻重复元素<br>
+返回相邻元素的第一个位置的迭代器<br>
+adjacent_find(iterator beg, iterator end); 
+```text
+beg 开始迭代器
+end 结束迭代器
+```
+```cpp
+    vector<int> v3;
+    v3.push_back(1);
+	v3.push_back(2);
+	v3.push_back(5);
+	v3.push_back(2);
+	v3.push_back(4);
+	v3.push_back(4);
+	v3.push_back(3);
+    vector<int>::iterator it4 = adjacent_find(v3.begin(),v3.end());
+    if(it4 == v3.end()){
+        cout << "false" << endl;
+    }
+    else{
+        cout << *it4 << endl;
+    }
+    //输出为4
+```
+##### binary_search
+查找指定元素是否存在,查到 返回true  否则false<br>
+bool binary_search(iterator beg, iterator end, value);<br>
+```text
+注意: 在无序序列中不可用
+二分查找，效率高
+beg 开始迭代器
+end 结束迭代器
+value 查找的元素
+```
+```cpp
+    vector<int> v3;
+    for (int i = 0; i < 10; i++)
+	{
+		v3.push_back(i);
+	}
+    bool ret = binary_search(v3.begin(),v3.end(),4);
+```
+##### count
+统计元素个数<br>
+count(iterator beg, iterator end, value);<br>
+```text
+beg 开始迭代器
+end 结束迭代器
+value 统计的元素
+```
+```cpp
+    vector<int> v;
+    v.push_back(1);
+	v.push_back(2);
+	v.push_back(4);
+	v.push_back(5);
+	v.push_back(3);
+	v.push_back(4);
+	v.push_back(4);
+    int num = count(v.begin(),v.end(),4);
+    cout << "4的个数为：" << num << endl;
+```
+```cpp
+//自定义数据类型
+class Person
+{
+public:
+    Person(string name,int age){
+        m_name = name;
+        m_age = age;
+    }
+    bool operator==(const Person& p){
+        if(this->m_age == p.m_age ){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    int m_age;
+    string m_name;
+};
+void test01()
+{
+    vector<Person> v1;
+    Person p1("张三",20);
+    Person p2("李四",20);
+    Person p3("王五",30);
+    v1.push_back(p1);
+    v1.push_back(p2);
+    v1.push_back(p3);
+    Person p("zzx",20);
+    int num1  = count(v1.begin(),v1.end(),p);
+    cout << "年龄为20的人数为：" << num1 << endl;
+}
+```
+##### count_if
+按条件统计元素个数<br>
+count_if(iterator beg, iterator end, _Pred); 
+```text
+按条件统计元素出现次数
+beg 开始迭代器
+end 结束迭代器
+_Pred 谓词
+```
+```cpp
+//int 和 Person 两种数据类型
+//谓词的两种写法
+//注意谓词agecompare中使用了Person类，所以要将Person类写在前面或者提前申明
+class Person
+{
+public:
+    Person(string name,int age){
+        m_name = name;
+        m_age = age;
+    }
+    bool operator==(const Person& p){
+        if(this->m_age == p.m_age ){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    int m_age;
+    string m_name;
+};
+class compare{
+public:
+bool operator()(int val){
+    return val >= 4;
+}
+};
+bool agecompare(const Person &p){
+    return p.m_age >= 25;
+}
+void test01()
+{
+    vector<int> v;
+    v.push_back(1);
+	v.push_back(2);
+	v.push_back(4);
+	v.push_back(5);
+	v.push_back(3);
+	v.push_back(4);
+	v.push_back(4);
+    int num = count_if(v.begin(),v.end(),compare());
+    cout << "大于等于4的元素个数为：" << num << endl;
+    vector<Person> v1;
+	Person p1("刘备", 35);
+	Person p2("关羽", 35);
+	Person p3("张飞", 35);
+	Person p4("赵云", 30);
+	Person p5("曹操", 25);
+    v1.push_back(p1);
+    v1.push_back(p2);
+    v1.push_back(p3);
+    v1.push_back(p4);
+    v1.push_back(p5);
+    int num1 = count_if(v1.begin(),v1.end(),agecompare);
+    cout << "年龄大于等于25的人数为：" << num1 << endl;
+}
+```
+#### 排序
+- `sort`             //对容器内元素进行排序
+- `random_shuffle`   //洗牌   指定范围内的元素随机调整次序
+- `merge `           // 容器元素合并，并存储到另一容器中
+- `reverse`       // 反转指定范围的元素
+##### sort
+对容器内元素进行排序<br>
+sort(iterator beg, iterator end, _Pred); 
+```text
+beg    开始迭代器
+end    结束迭代器
+_Pred  谓词
+```
+```cpp
+//谓词可加可不加，不加就默认升序
+sort(v.begin(), v.end());
+sort(v.begin(), v.end(), greater<int>());
+//greater<int>() 为内置的降序谓词
+//当然也可以自己手写谓词(两种方法)
+```
+##### random_shuffle
+洗牌 ：指定范围内的元素,随机调整次序<br>
+random_shuffle(iterator beg, iterator end);  
+```text
+beg 开始迭代器
+end 结束迭代器
+```
+```cpp
+#include <ctime>
+
+class myPrint
+{
+public:
+	void operator()(int val)
+	{
+		cout << val << " ";
+	}
+};
+
+void test01()
+{
+	srand((unsigned int)time(NULL));
+	vector<int> v;
+	for(int i = 0 ; i < 10;i++)
+	{
+		v.push_back(i);
+	}
+	for_each(v.begin(), v.end(), myPrint());
+	cout << endl;
+
+	//打乱顺序
+	random_shuffle(v.begin(), v.end());
+	for_each(v.begin(), v.end(), myPrint());
+	cout << endl;
+}
+//此写法已被遗弃
+```
+##### merge
+两个容器元素合并，并存储到另一容器中<br>
+merge(iterator beg1, iterator end1, iterator beg2, iterator end2, iterator dest); 
+```text
+注意: 两个容器必须是有序的
+beg1   容器1开始迭代器
+end1   容器1结束迭代器
+beg2   容器2开始迭代器
+end2   容器2结束迭代器
+dest   目标容器开始迭代器
+```
+```cpp
+class myprint{
+public:
+    void operator()(int val){
+        cout << val << " ";    
+    }
+};
+void test01()
+{
+    vector<int> v1;
+    vector<int> v2;
+    vector<int> v;
+    for (int i = 0; i < 10; i++)
+    {
+        v1.push_back(i);
+        v2.push_back(i + 100);
+    }
+    v.resize(v1.size() + v2.size());//提前开辟空间
+    merge(v1.begin(),v1.end(),v2.begin(),v2.end(),v.begin());//v1 v2必须是有序的
+    for_each(v.begin(),v.end(),myprint());
+    cout << endl;
+}
+```
+##### reverse
+将容器内元素进行反转<br>
+reverse(iterator beg, iterator end); 
+```text
+beg 开始迭代器
+end 结束迭代器
+```
+```cpp
+reverse(v.begin(), v.end());
+```
+#### 拷贝&替换
+- `copy`                      // 容器内指定范围的元素拷贝到另一容器中
+- `replace`                // 将容器内指定范围的旧元素修改为新元素
+- `replace_if `             // 容器内指定范围满足条件的元素替换为新元素
+- `swap`                     // 互换两个容器的元素
+##### copy
+容器内指定范围的元素拷贝到另一容器中<br>
+copy(iterator beg, iterator end, iterator dest);  
+```text
+beg  开始迭代器
+end  结束迭代器
+dest 目标起始迭代器
+
+利用copy算法在拷贝时，目标容器记得提前开辟空间
+```
+```cpp
+vector<int> v1;
+vector<int> v2;
+v2.resize(v1.size());
+copy(v1.begin(),v1.end(),v2.begin());
+```
+##### replace
+将容器内指定范围的指定旧元素修改为新元素<br>
+replace(iterator beg, iterator end, oldvalue, newvalue); 
+```text
+beg 开始迭代器
+end 结束迭代器
+oldvalue 旧元素
+newvalue 新元素
+```
+```cpp
+replace(v.begin(), v.end(), 20,2000);
+//将范围内的20改为2000
+```
+##### replace_if
+将区间内满足条件的元素，替换成指定元素<br>
+replace_if(iterator beg, iterator end, _pred, newvalue);  
+```text
+beg 开始迭代器
+end 结束迭代器
+_pred 谓词
+newvalue 替换的新元素
+```
+```cpp
+class ReplaceGreater30
+{
+public:
+	bool operator()(int val)
+	{
+		return val >= 30;
+	}
+};
+replace_if(v.begin(),v.end(),ReplaceGreater30(),0);
+//将容器中大于30的元素换成0
+```
+##### swap
+互换两个容器的元素<br>
+swap(container c1, container c2);  
+```text
+c1 容器1
+c2 容器2
+
+swap交换容器时，注意交换的容器要同种类型
+vector<int> 与 vector<string> list<int> 均不可交换
+
+stl中的swap不需要保证两个容器大小相同
+std中的数组swap则需要确保两个数组大小相同，否则无法交换
+```
+```cpp
+swap(v1,v2);
+```
+#### 算术生成算法
+算术生成算法属于小型算法<br>
+**使用时包含的头文件为 `#include <numeric>`**
+- `accumulate`          // 计算容器元素累计总和
+- `fill`                 // 向容器中添加元素
+##### accumulate
+计算区间内 容器元素累计总和<br>
+accumulate(iterator beg, iterator end, value);
+```text
+beg 开始迭代器
+end 结束迭代器
+value 起始值
+```
+```cpp
+vector<double> v = {1.5, 2.5};
+accumulate(v.begin(), v.end(), 0);    // 初始值是 int → 结果按 int 累加，得 3（小数被截掉）
+accumulate(v.begin(), v.end(), 0.0);  // 初始值是 double → 得 4.0
+accumulate(v.begin(), v.end(), 1.0);  // 结果为 5.0
+```
+##### fill
+向容器中填充指定的元素<br>
+fill(iterator beg, iterator end, value);
+```text
+beg 开始迭代器
+end 结束迭代器
+value 填充的值
+```
+```cpp
+    vector<int> v;
+	v.resize(10);
+    for_each(v.begin(), v.end(), myprint());
+	cout << endl;
+    for(int i = 0; i < 10; i++)
+    {
+        v.push_back(i);
+        //v[i] = i;
+    }
+	//填充
+	fill(v.begin(), v.end(), 100);
+
+	for_each(v.begin(), v.end(), myprint());
+	cout << endl;
+
+/*
+v.push_back(i)是在容器后追加
+而v.resize(10);已经开辟出十个元素0
+v[i] = i;是覆盖
+fill()也是覆盖元素
+*/
+```
+#### 集合算法
+- `set_intersection`          // 求两个容器的交集
+- `set_union`                 // 求两个容器的并集
+- `set_difference `           // 求两个容器的差集
+##### set_intersection
+求两个容器的交集<br>
+set_intersection(iterator beg1, iterator end1, iterator beg2, iterator end2, iterator dest); 
+```text
+注意:两个集合必须是有序序列
+求的交集放在新的一个容器中
+目标容器开辟空间需要从两个容器中取小值
+set_intersection返回值既是交集中(新容器)最后一个元素的位置
+
+beg1 容器1开始迭代器
+end1 容器1结束迭代器
+beg2 容器2开始迭代器
+end2 容器2结束迭代器
+dest 目标容器开始迭代器
+```
+```cpp
+////取两个里面较小的值给目标容器提前开辟空间
+v.resize(min(v1.size(), v2.size()));
+//返回目标容器的最后一个元素的迭代器地址
+vector<int>::iterator itEnd = set_intersection(v1.begin(), v1.end(), v2.begin(), v2.end(), v.begin());
+for_each(v.begin(), itEnd, myprint());
+```
+##### set_union
+求两个集合的并集<br>
+set_union(iterator beg1, iterator end1, iterator beg2, iterator end2, iterator dest); 
+```text
+注意:两个集合必须是有序序列
+目标容器开辟空间需要为两个容器相加
+set_union返回值既是并集中(新容器)最后一个元素的位置
+
+beg1 容器1开始迭代器
+end1 容器1结束迭代器
+beg2 容器2开始迭代器
+end2 容器2结束迭代器
+dest 目标容器开始迭代器
+```
+```cpp
+vector<int> v;
+	//取两个容器的和给目标容器开辟空间
+	v.resize(v1.size() + v2.size());
+	//返回目标容器的最后一个元素的迭代器地址
+	vector<int>::iterator itEnd = set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), v.begin());
+	for_each(v.begin(), itEnd, myPrint());
+```
+##### set_difference
+求两个集合的差集<br>
+set_difference(iterator beg1, iterator end1, iterator beg2, iterator end2, iterator dest);  
+```text
+注意:两个集合必须是有序序列
+目标容器开辟空间需要从两个容器取较大值
+set_difference返回值既是差集中(新容器)最后一个元素的位置
+
+beg1 容器1开始迭代器
+end1 容器1结束迭代器
+beg2 容器2开始迭代器
+end2 容器2结束迭代器
+dest 目标容器开始迭代器
+```
+```cpp
+vector<int> vTarget;
+	//取两个里面较大的值给目标容器开辟空间
+	vTarget.resize( max(v1.size() , v2.size()));
+
+	//返回目标容器的最后一个元素的迭代器地址
+	cout << "v1与v2的差集为： " << endl;
+	vector<int>::iterator itEnd = set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(), vTarget.begin());
+	for_each(vTarget.begin(), itEnd, myPrint());
+
+    cout << "v2与v1的差集为： " << endl;
+	itEnd = set_difference(v2.begin(), v2.end(), v1.begin(), v1.end(), vTarget.begin());
+	for_each(vTarget.begin(), itEnd, myPrint());
 ```
