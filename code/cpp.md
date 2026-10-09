@@ -132,6 +132,7 @@
       - [pair对组创建](#pair对组创建)
       - [set容器排序](#set容器排序)
   - [map/multimap](#mapmultimap)
+    - [map的特殊用法](#map的特殊用法)
     - [map接口](#map接口)
       - [map构造和赋值](#map构造和赋值)
       - [map插入和删除](#map插入和删除)
@@ -174,6 +175,7 @@
       - [set\_intersection](#set_intersection)
       - [set\_union](#set_union)
       - [set\_difference](#set_difference)
+  - [容器案例](#容器案例)
 
 
 ```text
@@ -4314,7 +4316,7 @@ void test01()
     //不支持随机访问迭代器的容器内部会提供一些对应算法，L.sort();
 	L.sort(); //默认的排序规则 从小到大
     L.sort(myCompare); //指定规则，从大到小
-    //或者用内置的方法  L.sort(greater<int>());
+    //或者用内置的方法  L.sort(numeric<int>());
 }
 ```
 ##### list案例：
@@ -4506,6 +4508,12 @@ map和multimap区别
 map不允许容器中有重复key值元素
 multimap允许容器中有重复key值元素
 ```
+#### map的特殊用法
+map[key] ：直接拿到value(map中重载了operator[]）
+map[][] ： 对map[]返回的值再调用他自己的operator[]
+只有用迭代器时，迭代器it指向一个pair，才有first second的说法
+详细代码<br>
+[speech_Manager.cpp 源码](./speech_system/speech_Manager.cpp)中的showrecord()部分
 #### map接口
 ##### map构造和赋值
 ```text
@@ -5478,3 +5486,5 @@ vector<int> vTarget;
 	itEnd = set_difference(v2.begin(), v2.end(), v1.begin(), v1.end(), vTarget.begin());
 	for_each(vTarget.begin(), itEnd, myPrint());
 ```
+### 容器案例
+speech_system<br>

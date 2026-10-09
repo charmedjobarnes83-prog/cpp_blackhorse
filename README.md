@@ -146,6 +146,26 @@ C++标准：C++17
 chcp 65001
 ```
 
+## 编辑器行为（补全与格式化）
+
+本项目在 `.vscode/settings.json` 中统一约定：
+
+- **保留基础补全**：打字时弹出补全列表，可提示 `include`、关键字、变量名、函数名等单词。
+- **屏蔽大段代码补全**：关闭代码片段(snippet)补全和行内幽灵建议，不会一选就插入整段 `for`/`if`/函数体。
+- **开启保存时自动格式化**：`Ctrl+S` 保存时用微软 C/C++ 扩展（内置 clang-format）自动整理代码格式，缩进 4 空格、行宽 120。
+
+对应设置项：
+
+| 目的 | 设置 |
+|---|---|
+| 基础单词补全 | `editor.quickSuggestions.other: on`、`editor.suggestOnTriggerCharacters: true`、`editor.parameterHints.enabled: true` |
+| 屏蔽大段代码补全 | `editor.snippetSuggestions: "none"`、`editor.inlineSuggest.enabled: false` |
+| 保存时格式化 | `editor.formatOnSave: true` |
+| C/C++ 格式化程序 | `[cpp]` / `[c]` 的 `editor.defaultFormatter` 设为 `ms-vscode.cpptools` |
+| 格式化风格 | `C_Cpp.clang_format_style` |
+
+这些是工作区级设置，只对本仓库生效。换电脑拉取仓库后即自动生效（前提是已安装 C/C++ 扩展）。
+
 ## Git 双电脑同步
 
 仓库同步以下内容：

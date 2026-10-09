@@ -15,5 +15,31 @@
         }
     },
     "cmake.generator": "MinGW Makefiles",
-    "markdown.extension.toc.updateOnSave": true
+    "markdown.extension.toc.updateOnSave": true,
+
+    // ===== 只保留基础补全，屏蔽大段代码补全 =====
+    // 打字时弹出补全列表，可提示 include / 关键字 / 变量名等单词
+    "editor.quickSuggestions": {
+        "other": "on",
+        "comments": "off",
+        "strings": "off"
+    },
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.parameterHints.enabled": true,
+    // 关闭代码片段(snippet)补全：不再一选就插入一整段 for/if/函数体
+    "editor.snippetSuggestions": "none",
+    // 关闭行内灰色幽灵建议（AI 那种整行/整段补全）
+    "editor.inlineSuggest.enabled": false,
+
+    // ===== 开启保存时自动格式化 =====
+    "editor.formatOnSave": true,
+    // C/C++ 用微软 C/C++ 扩展(内置 clang-format)来格式化
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    // 缩进风格：4 空格、大括号换行等，可按喜好改
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: Microsoft, IndentWidth: 4, ColumnLimit: 120 }"
 }
