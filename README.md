@@ -268,3 +268,6 @@ int main() {
 ```powershell
 Get-Process -Name "<cpp文件名>" -ErrorAction SilentlyContinue
 ```
+
+### 代码找不到.h文件
+.h文件统一放在head文件夹下，已指定位置，不要再在head下新增文件夹
