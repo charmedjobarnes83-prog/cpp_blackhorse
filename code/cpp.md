@@ -176,6 +176,15 @@
       - [set\_union](#set_union)
       - [set\_difference](#set_difference)
   - [容器案例](#容器案例)
+- [c++进阶补充](#c进阶补充)
+  - [智能指针](#智能指针)
+    - [unique\_ptr](#unique_ptr)
+    - [shared\_ptr](#shared_ptr)
+    - [shared\_ptr与unique\_ptr](#shared_ptr与unique_ptr)
+    - [weak\_ptr](#weak_ptr)
+  - [移动语义](#移动语义)
+    - [左值](#左值)
+    - [右值](#右值)
 
 
 ```text
@@ -5488,3 +5497,299 @@ vector<int> vTarget;
 ```
 ### 容器案例
 speech_system<br>
+
+## c++进阶补充
+### 智能指针
+用智能指针要加头文件 #include <memory>
+#### unique_ptr
+独占指针<br>
+在任何给定的时刻，只能有一个指针管理内存。当指针超出作用域时，内存将自动释放<br>
+此类型指针不可copy，只可move<br>
+```text
+三种创建方式
+
+通过已有裸指针创建-----delete原裸指针
+通过new创建
+通过std::make_unique创建
+```
+unique_ptr可以通过get()获取地址<br>
+同时unique_ptr也实现了->(调用成员函数)和*(解引用)<br>
+```cpp
+#include <memory>
+
+    //第一种，通过裸指针创建
+   Cat *c_p1 = new Cat("zz");
+   delete c_p1;
+   c_p1 = nullptr;
+   unique_ptr<Cat> u_c_p1{c_p1};
+   //u_c_p1->cat_info();
+
+   //第二种，new
+   unique_ptr<Cat> u_c_p2{new Cat("zzx")};
+   unique_ptr<int> u_c_p4{new int(100)};
+   u_c_p2->cat_info();
+   u_c_p2->set_cat("tt");
+   u_c_p2->cat_info();
+   //解引用和get()
+   cout << *u_c_p4 << endl;
+   cout << "int address:" << u_c_p4.get() << endl;
+   cout << "Cat address:" << u_c_p2.get() << endl;
+
+   //第三种，推荐，make_unique
+   unique_ptr<Cat> u_c_p3 = make_unique<Cat>();
+   unique_ptr<int> u_c_p5 = make_unique<int>(200);
+   u_c_p3->cat_info();
+   u_c_p3->set_cat("pp");
+   u_c_p3->cat_info();
+   //解引用和get()
+   cout << *u_c_p5 << endl;
+   cout << "int address:" << u_c_p5.get() << endl;
+   cout << "Cat address:" << u_c_p3.get() << endl;
+```
+独占所有权解释
+```cpp
+unique_ptr<int> a = make_unique<int>(10);
+unique_ptr<int> b = a;      // ✗ 编译失败：unique_ptr 不可以用拷贝构造
+unique_ptr<int> c = move(a);  // ✓ 移动：所有权从 a 转给 c，a 变成 nullptr
+```
+Passing by value(按值传参)
+```text
+函数按值接受unique_ptr时，会发生一次拷贝，
+但unique_ptr不能拷贝，所以必须用move把所有权转移进去
+转移后原指针变为空
+```
+```cpp
+void takeByValue(unique_ptr<int> p) {
+    cout << "函数内拿到值: " << *p << endl;
+}   // p 在这里析构，释放内存
+void test01()
+{
+    auto p = make_unique<int>(42);
+    // takeByValue(p);          // ✗ 编译失败，不能拷贝
+    takeByValue(move(p));   // ✓ 必须 move
+
+    cout << "move 之后 p 是否为空: " << (p == nullptr) << endl;//空
+
+    takeByValue(make_unique<int>(99));  // ✓ 临时对象自动按移动处理，不用写 move，因为make_unique 返回的是右值（临时对象），右值会直接匹配移动语义
+}
+```
+Passing by reference(按引用传参)
+```text
+按引用传不转移所有权，函数只是借用
+如果引用参数加const后，函数内就不能改动这个智能指针本身
+    此处不能改的是p，此const不作用于p指向的值
+reset()为智能指针清空方法
+    p.reset();就是简单的清空
+    p.reset(new int(5));代表先清空p的原有地址，再将p改为管理新的int(5)
+```
+```cpp
+void peek(const unique_ptr<int>& p) {   // const 引用：只读借用
+    cout << "借用查看值: " << *p << endl;
+    p->setcat("aa"); //const只是管指针，不管指针指向的对象
+    // p.reset();     // ✗ 编译失败：const 不允许改动 p 本身
+}
+void peekNonConst(unique_ptr<int>& p) { // 非 const 引用：可以改动
+    p.reset();        // ✓ 允许，清空智能指针
+}
+void test01()
+{
+    auto p = make_unique<int>(7);
+    peek(p);
+    cout << "peek 之后 p 仍在: " << (p != nullptr) << endl;
+ 
+    peekNonConst(p);
+    cout << "reset 之后 p 是否为空: " << (p == nullptr) << endl;
+}
+```
+Return by value(按值返回)
+```text
+函数返回一个unique_ptr
+返回局部智能指针时会自动移动出去，因为局部对象是右值，调用方接住所有权-----auto c = createCat(); 
+支持链式调用
+```
+```cpp
+class Cat {
+public:
+    string name;
+    Cat(string n){ 
+		name = move(n);//写成name=n也行
+		cout << "构造 " << name << endl; 
+	}
+    ~Cat() { cout << "析构 " << name << endl; }
+    Cat& setName(string n) { name = move(n); return *this; }  // 返回自身引用，支持链式
+};
+ 
+// 返回局部 unique_ptr，自动移动，无需写 move
+unique_ptr<Cat> createCat() {
+    Cat c1("临时猫");        // 栈上局部对象，不能把它return出去，否则会变成悬空引用，离开作用域自动回收内存
+    return make_unique<Cat>(c1.name);  // 在堆上建一只，返回其所有权
+}
+void test01()
+{
+    auto c = createCat();               // c 接管堆对象所有权，同时作用域也从createCat()函数变为了test01()函数
+    cout << "拿到: " << c->name << endl;
+ 
+    // 链式调用：setName 返回 Cat&，可以继续 -> 调用
+    c->setName("改名猫").setName("再改名");//链式调用
+    cout << "最终: " << c->name << endl; 
+    // c 离开作用域，自动 delete，打印析构
+}
+
+//可作为返回对象的有指针，指向的数据要在堆上
+```
+#### shared_ptr 
+共享指针---可以共享数据
+```text
+不是简单的copy，shared_ptr创建了一个计数器，
+计数器与类对象所指的内存相关联
+copy 则 计数器+1 
+销毁 则 计数器-1
+use_count() 可得到计数器数据    
+```
+```cpp
+//常量类型
+
+   shared_ptr<int> p1 = make_shared<int>(10);
+   cout << "p1-value:" << *p1 << endl;//10
+   cout << "p1-count:" << p1.use_count() << endl;//1
+
+   shared_ptr<int> p2 = p1;
+   cout << "p1-count:" << p1.use_count() << endl;//2
+   cout << "p2-count:" << p2.use_count() << endl;//2
+
+   *p2 = 30;
+    cout << "p1-count:" << p1.use_count() << endl;//2
+    cout << "p2-count:" << p2.use_count() << endl;//2
+    cout << "p1-value:" << *p1 << endl;//30
+	cout << "p2-value:" << *p2 << endl;//30
+
+	shared_ptr<int> p3 = p1;
+	cout << "p1-count:" << p1.use_count() << endl;//3
+    cout << "p2-count:" << p2.use_count() << endl;//3
+    cout << "p3-count:" << p3.use_count() << endl;//3
+	p1 = nullptr;
+	cout << "p1-count:" << p1.use_count() << endl;//0
+    cout << "p2-count:" << p2.use_count() << endl;//2
+    cout << "p3-count:" << p3.use_count() << endl;//2
+    //销毁只执行一次
+```
+```cpp
+//自定义数据类型
+
+    shared_ptr<Cat> c1 = make_shared<Cat>();
+    cout << "c1-count:" << c1.use_count() << endl;//1
+    shared_ptr<Cat> c2 = c1;
+    shared_ptr<Cat> c3 = c1;
+    cout << "c1-count:" << c1.use_count() << endl;//3
+```
+Pass by value(按值传参)
+```text
+可以copy ，无需再用move(p)
+在函数内部，调用use_count(),计数器的值会+1，但在函数外部，计数器的值不变
+```
+Pass by referen(按引用传参)
+```text
+同样，加const后不可改变指向，但可改变指向的数据
+即加const不可以p.reset()
+```
+return by value
+```text
+可以链式调用
+```
+#### shared_ptr与unique_ptr
+不可以shared_ptr——>unique_ptr<br>
+可以unique_ptr——>shared_ptr  (通过move())<br>
+在设计函数返回值时，常设置返回值为unique_ptr
+```cpp
+unique_ptr<int> c1 = make_unique<int>(10);
+shared_ptr<int> c2 = move(c1);//计数器仍为1
+```
+#### weak_ptr
+weak_ptr不用有所有权<br>
+weak_ptr不能调用->和解引用*<br>
+```text
+倘若A类对象中需要存储其他A类对象的信息，倘若使用的是shared_ptr,
+在销毁时，不知道先销毁谁，遇到了循环依赖问题
+因此需要用一个不需要拥有所有权的指针来标记该同类对象
+weak_ptr 可以通过lock()函数提升为shared_ptr，即类型转换
+```
+```cpp
+   shared_ptr<int> s1 = make_shared<int>(10);
+   cout << "shared count: " << s1.use_count() << endl;
+   weak_ptr<int> w1(s1);
+   cout << "weak count: " << w1.use_count() << endl;//weak_ptr可以调用use_count()但不能+1
+   cout << "shared count: " << s1.use_count() << endl;
+   //w1->show(); weak_ptr 不能用->
+   shared_ptr<int> s2 = w1.lock();//通过lock()转换类型，且use_count+1，意味着weak_ptr已转化为shared_ptr
+   cout << "shared count: " << s2.use_count() << endl;
+```
+```cpp
+class Cat {
+public:
+    shared_ptr<Cat> m_friend;
+    void set_friend(shared_ptr<Cat> c){
+		m_friend = c;
+	}
+};
+int main(){
+    shared_ptr<Cat> c3 = make_shared<Cat>("c3");
+    shared_ptr<Cat> c4 = make_shared<Cat>("c4");
+
+    c3->set_friend(c4);
+    c4->set_friend(c3);
+    //这两行代码导致出现循环依赖，c3c4无法销毁
+}
+
+改进
+
+class Cat {
+public:
+    weak_ptr<Cat> m_friend;
+    void set_friend(shared_ptr<Cat> c){
+		m_friend = c;
+	}
+};
+int main(){
+    shared_ptr<Cat> c3 = make_shared<Cat>("c3");
+    shared_ptr<Cat> c4 = make_shared<Cat>("c4");
+
+    c3->set_friend(c4);
+    c4->set_friend(c3);
+    //现在可以正常销毁
+}
+```
+### 移动语义
+#### 左值
+有地址，如int a中的a<br>
+++x：先把x+1，然后返回x本身，x是有名字，能继续用的对象<br>
+函数形参
+```cpp
+void func(int val){
+    int *a = &val;
+}
+int main(){
+    func(2);
+}
+//2是右值，传入后，形参val为左值
+```
+通常字面量都是右值，但字符串字面量特殊是左值
+```cpp
+const char*[10] = &"abcdefg"; //字符串"abcdefg"可取地址
+```
+#### 右值
+没有地址的临时值，如int a = 5中的5<br>
+x++：先把x的旧值拷贝一份存起来，再让x+1，最后把那份拷贝交出去，那个拷贝是转瞬即逝的临时量，没有名字，出了这条语句就没了<br>
+函数返回值
+```cpp
+//情况一 返回的函数内的局部变量
+int func(){
+    int x = 0;
+    return x;//返回的是右值
+}
+
+//情况二 返回的不是函数内部局部变量
+int func(){}//右值
+int& func(){}//左值
+int&& func(){}//右值
+
+```
