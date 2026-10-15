@@ -185,6 +185,13 @@
   - [移动语义](#移动语义)
     - [左值](#左值)
     - [右值](#右值)
+    - [移动语义](#移动语义-1)
+  - [可调用对象function类](#可调用对象function类)
+    - [函数指针](#函数指针)
+    - [仿函数(函数对象)](#仿函数函数对象)
+    - [Lambda表达式](#lambda表达式)
+    - [std::function对象](#stdfunction对象)
+    - [std::bind对象](#stdbind对象)
 
 
 ```text
@@ -5791,5 +5798,265 @@ int func(){
 int func(){}//右值
 int& func(){}//左值
 int&& func(){}//右值
+```
+#### 移动语义
+允许资源的所有权从一个对象转移到另一个对象，避免不必要的拷贝浪费性能<br>
+移动构造函数&移动赋值
+```text
+className(className&& other) noexcept{} 
+className& operator=(className && other)noexcept{}
+右值引用：只绑定临时对象，直接拿走other的所有权，并将other的指针置空
+noexcept建议写，它决定 vector 扩容时用移动还是退回拷贝（编译期决定，不是运行期回退）
+
+普通拷贝构造用const className&  会复制一份other
+```
+```cpp
+#include <iostream>
+using namespace std;
+class MyArray {
+private:
+    int * m_p;
+    int m_size;
+public:
+    //普通构造函数
+    MyArray(int size):m_size(size){
+        m_p = new int[size]();
+    }
+    //拷贝构造函数
+    MyArray(const MyArray& other){
+        m_size = other.m_size;
+        m_p = new int[m_size]();
+        for(int i=0;i<m_size;i++){
+            m_p[i] = other.m_p[i];
+        }
+    }
+    //移动构造，直接抢指针，0次new
+    MyArray(MyArray && other) noexcept{
+        m_p = other.m_p;
+        m_size = other.m_size;
+        
+        other.m_p = nullptr;
+        other.m_size = 0;
+        //必须清空，否则双重释放
+    }
+    //移动赋值，先清空自己，再抢指针
+    MyArray& operator=(MyArray && other) noexcept{
+        if(this == &other){
+            return *this;//防止自移动 a = move(a)
+        }
+        delete[] m_p;   //释放自己的原资源
+        m_p = other.m_p;
+        m_size = other.m_size;
+
+        other.m_p = nullptr;
+        other.m_size = 0;//清空，否则双重释放
+
+        return *this;
+    }
+    ~MyArray(){
+        delete[] m_p;
+    }
+    int size() const{
+        return m_size;
+    }
+};
+MyArray makeArr(){
+    return MyArray(100);//返回临时对象(右值)
+}
+void byValue(Myarray a){} //按值传参  =  拷贝构造
+int main(){
+    //拷贝构造
+    MyArray a(10);
+    MyArray b(a);//走拷贝构造，并未破坏a
+    
+    //移动
+    Myarray c(move(a));//a是左值，move(a)是右值引用，a被破坏
+    MyArray d = makeArr();//不用move,因为return的临时对象本就是右值
+    MyArray e(5);
+    e = move(c);//移动赋值
+}
+```
+```cpp
+//对于移动赋值m_p = other.m_p;和m_p = move(other.m_p);一般来说没有区别
+//但是当成员本身是有移动语义的类类型
+//如string vector unique_ptr
+class MyString {
+    std::string m_name;   //  std::string / vector / unique_ptr 等
+};
+m_name = other.m_name;                // 拷贝：分配新堆内存 + 逐字符复制
+m_name = std::move(other.m_name);     // 移动：抢指针，O(1)，other 自动变空
+//所以在示例视频中 写了name = move(other.name);  age = other.age;
+```
+### 可调用对象function类
+#### 函数指针
+函数的名字就是函数的地址，类似数组，无需解引用/取址<br>
+```text
+优点：简单直观，适用于简单的回调函数
+缺点：不能捕获上下文，语法相对复杂
+```
+```cpp
+int (*funcPtr)(int,int);//定义函数指针类型的变量
+
+int add(int a,int b){
+    return a+b;
+}
+
+int main(){
+    //函数指针指向函数
+    funcPtr = add;
+    //funcPtr = &add; 也可以
+
+    //函数指针调用函数,无需解引用 (*funcPtr)(1,2); 
+    funcPtr(1,2);
+}
+```
+#### 仿函数(函数对象)
+重载()<br>
+仿函数不仅能像普通函数一样被调用，还能携带状态
+```cpp
+struct Accumulator{
+  int sum;
+  Accumulator(){
+    sum = 0;
+  }  
+  void operator()(int x){
+    sum += x;
+  }
+};
+int main(){
+    Accumulator a1;
+    a1(10);
+    a1(20);
+    a1(30);
+    cout << a1.sum;
+}
+```
+#### Lambda表达式
+允许在代码中定义匿名函数,可以捕获周围的变量，具有更强的表达能力
+```text
+[captures](parameters) -> return_type {
+    // 函数体
+}
+
+captures: 捕获外部变量的方式，可以是值捕获、引用捕获或者混合捕获
+parameters: 参数列表
+return_type: 返回类型，可以省略，编译器会自动推导
+```
+```cpp
+    int threshold = 5;
+    std::vector<int> numbers = {1, 6, 3, 8, 2, 7};
+
+    // 使用lambda表达式进行过滤
+    numbers.erase(std::remove_if(numbers.begin(), numbers.end(),[threshold](int n) -> bool {return n < threshold;}), numbers.end());
+    //Lambda表达式 : [threshold](int n) -> bool {return n < threshold;}
+
+    // 输出结果
+    for(auto n : numbers) {
+        std::cout << n << " "; // 输出: 6 8 7
+    }
+```
+```cpp
+[threshold](int n) -> bool {return n < threshold;}
+
+[threshold]                --  捕获列表     --  把外部的threshold拷进来当成员
+(int n)                    --  参数列表     --  接受每个被检查的元素
+-> bool                    --  返回类型     --  可省略(此处的显示声明是谓词(判断关系))
+{return n < threshold;}    --  函数体       --  判断逻辑
+整体                       --  一个临时对象  --  传给remove_if，内部反复调用
+
+匿名仿函数对象，没有名字，不可用复用
+也可做一定的修改，使其有名字可以复用
+如：
+auto tooSmall = [threshold](int n) -> bool { return n < threshold; };
+numbers.erase(std::remove_if(numbers.begin(), numbers.end(), tooSmall), numbers.end());
+```
+```cpp
+    for(auto n : numbers) {
+        std::cout << n << " "; 
+    }
+    //和python中的for n in numbers:相同  : 等价于 in
+    //auto 自动推导元素类型
+
+    for (auto it = numbers.begin(); it != numbers.end(); ++it) {//等价写法
+        int n = *it;              
+        std::cout << n << " ";
+    }
+
+    //补充
+    for (auto n : v)// 拷贝一份元素	只读          元素是 int/double 这种小类型用这个
+    for (const auto& n : v)// 不拷贝，只读	     默认该用这个，元素是 string/类对象时用这个
+    for (auto& n : v)// 不拷贝，可修改原容器	  想改元素时用这个
+```
+```text
+remove_if的规则：将不符合规则的元素移动到容器前面，并返回一个指向新逻辑末尾的迭代器，尾部只是搬动过程中剩下的残骸
+这段代码中，先由remove_if搬排，让待删除元素排成一片，然后统一清除，而不是逐个定位逐个删除，这正是比循环erase快的原因————只搬一次只删一次
+```
+捕获方式
+```text
+值捕获([=])     捕获函数体里实际用到的外部变量的副本，没引用的变量不会被捕获
+引用捕获([&])   获所有外部变量的引用
+混合捕获        指定部分变量按值捕获，部分按引用捕获，如 [=, &var] 或 [&, var]
+无捕获([])      不捕获任何外部变量
+
+示例:[a,&temp](int x)->void{ }  按引用捕获temp，按值捕获a
+```
+可变Lambda
+```text
+默认情况下，Lambda是不可变的(const)，通过mutable关键字，可以允许修改捕获的变量副本
+```
+```cpp
+int n = 10;
+auto f = [n]() mutable { n = 20; return n; };
+f();        // 20
+cout << n; // 10 —— mutable 只放开改副本，改不到外面
+//mutable≠能修改外部变量，想要改外部变量，要用引用捕获
+//不加mutable，不可以修改副本 因为lambda展开是一个const的()重载函数，此成员函数不能修改成员
+
+[n]()      { n = 20; }   // ✗ 编译错误
+[n]() mutable { n = 20; } // ✓ 改副本，外面的 n 不动
+[&n]()     { n = 20; }   // ✓ 不需要 mutable，改的是外面那个 n 本身
+```
+值捕获的时机   
+```cpp
+int n = 10;
+auto f = [n]{ return n; };
+n = 20;   //修改无用 
+f();   // 10 —— 创建 lambda 那一刻就拷贝完了
+```
+引用捕获的悬垂
+```text
+auto f = [&x]{ return x; }; 
+如果 f 活得比 x 久 → 未定义行为
+```
+```cpp
+auto makeCounter() {
+    int count = 0;
+    return [&count]() mutable { return ++count; };   // ✗ 危险
+}   // ← count 在这里销毁，栈内存被回收
+
+auto c = makeCounter();
+c();   // 未定义行为：往已经不属于它的栈位置写数据
+       // 可能返回 1，可能返回垃圾，可能崩，可能"看起来正常"——最难查的那种
+```
+```cpp
+//解决办法1   改为值捕获
+return [count]() mutable {return ++count;}; 
+
+//解决办法二  用shared_ptr把生命周期续上
+auto count = make_shared<int>(0);
+return [count](){return ++(*count);};
+    /*续命要求同时满足以下两点:
+    把数据搬到智能指针申请的堆内存上，生命周期不受栈管。
+    另外lambda手上有一份shared_ptr的副本，值捕获时，拷贝构造把usecount+1,函数返回时，局部shared_ptr析构使usecount-1,usecount一直为1，智能指针不死*/
+```
+```text
+解释上面的：
+    对于auto count = make_shared<int>(0)
+        return [count]() mutable { return ++(*count); };
+    count是一个局部变量，所以是一个栈变量，等号右侧在堆上
+    第一步创建count，usecount为1，值捕获拷贝一份，usecount为2，函数结束count析构，usecount变为1
 
 ```
+#### std::function对象
+
+#### std::bind对象
