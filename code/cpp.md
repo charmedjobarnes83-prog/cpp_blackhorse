@@ -192,6 +192,14 @@
     - [Lambda表达式](#lambda表达式)
     - [std::function对象](#stdfunction对象)
     - [std::bind对象](#stdbind对象)
+    - [绑定类的成员函数](#绑定类的成员函数)
+      - [一：std::bind绑定成员函数/绑定带有返回值的成员函数](#一stdbind绑定成员函数绑定带有返回值的成员函数)
+      - [二：Lambda绑定成员函数](#二lambda绑定成员函数)
+      - [三：绑定静态成员函数](#三绑定静态成员函数)
+    - [总结](#总结)
+- [数据结构与算法](#数据结构与算法)
+  - [学习内容](#学习内容)
+    - [时间复杂度](#时间复杂度)
 
 
 ```text
@@ -5526,8 +5534,8 @@ unique_ptr可以通过get()获取地址<br>
 
     //第一种，通过裸指针创建
    Cat *c_p1 = new Cat("zz");
-   delete c_p1;
-   c_p1 = nullptr;
+   //delete c_p1;
+   //c_p1 = nullptr;
    unique_ptr<Cat> u_c_p1{c_p1};
    //u_c_p1->cat_info();
 
@@ -5781,7 +5789,7 @@ int main(){
 ```
 通常字面量都是右值，但字符串字面量特殊是左值
 ```cpp
-const char*[10] = &"abcdefg"; //字符串"abcdefg"可取地址
+const char (*p)[10] = &"abcdefg"; //字符串"abcdefg"可取地址
 ```
 #### 右值
 没有地址的临时值，如int a = 5中的5<br>
@@ -5863,14 +5871,14 @@ public:
 MyArray makeArr(){
     return MyArray(100);//返回临时对象(右值)
 }
-void byValue(Myarray a){} //按值传参  =  拷贝构造
+void byValue(MyArray a){} //按值传参  =  拷贝构造
 int main(){
     //拷贝构造
     MyArray a(10);
     MyArray b(a);//走拷贝构造，并未破坏a
     
     //移动
-    Myarray c(move(a));//a是左值，move(a)是右值引用，a被破坏
+    MyArray c(move(a));//a是左值，move(a)是右值引用，a被破坏
     MyArray d = makeArr();//不用move,因为return的临时对象本就是右值
     MyArray e(5);
     e = move(c);//移动赋值
@@ -6057,6 +6065,442 @@ return [count](){return ++(*count);};
     第一步创建count，usecount为1，值捕获拷贝一份，usecount为2，函数结束count析构，usecount变为1
 
 ```
-#### std::function对象
+Lambda与标准库算法
+```cpp
+    vector<int> v1 = {2,4,1,6,3};
+    sort(v1.begin(),v1.end(),[](int a,int b )->bool{return a>b;});
+    for(auto num : v1){
+        cout << num;
+    }
+    //和迭代器循环遍历做区分
 
+```
+Lambda优点
+```text
+简洁                  代码更加紧凑，易于理解
+灵活                  能够捕获外部变量，适应更多场景
+性能优化              编译器可以对Lambda进行优化，如内联展开
+与标准库良好的集成     与STL算法无缝结合，简化代码逻辑
+```
+#### std::function对象
+std::function是一个通用的可调用包装器，能够封装任何可调用对象，包括普通函数,Lambda表达式，函数对象以及绑定表达式<br>
+实现了类型擦除，使得不同类型的可调用对象可以通过统一的接口进行操作<br>
+```text
+特点：
+类型擦除   可以存储任何符合签名的可调用对象
+灵活性     支持动态改变存储的可调用对象
+性能开销   相比于直接使用函数指针或者Lambda，function在频繁调用时可能带来一定的性能开销
+
+常用场景：
+回调函数的传递
+事件处理系统
+策略模式的实现
+```
+```cpp
+#include <iostream>
+#include <functional>
+//普通函数
+int add(int a, int b) {
+    return a + b;
+}
+//函数对象
+struct multiply {
+    int operator()(int a, int b)const {
+        return a * b;
+    }
+};
+int main() {
+    //封装普通函数
+    std::function<int(int, int)> func1 = add;
+    std::cout << "add:" << func1(3, 4) << std::endl;
+    //封装Lambda表达式
+    std::function<int(int, int)> func2 = [](int a, int b) ->int {return a - b;};
+    std::cout << "sub:" << func2(10, 2) << std::endl;
+    //封装函数对象
+    multiply m1;
+    std::function<int(int, int)> func3 = m1;
+    std::cout << "multi:" << func3(3, 5) << std::endl;
+}
+```
+```cpp
+回调机制的示例
+
+
+#include <iostream>
+#include <functional>
+//定义回调类型
+using Callback = std::function<void(int)>;
+//触发事件的函数
+void triggerEvent(Callback cb, int value) {
+    //事件发生，调用回调
+    cb(value);
+}
+void test() {
+    //使用Lambda作为回调
+    triggerEvent([](int x) {
+        std::cout << "print:" << x << std::endl;
+        }, 42);//事件触发，值为42
+
+    //使用仿函数作为回调
+    struct printer {
+        void operator()(int x)const {
+            std::cout << "printer:" << x << std::endl;
+        }
+    }p1;
+    triggerEvent(p1, 100);//输出100
+}
+
+/* 
+Callback是可以接收一个int，返回void的function
+上面两种回调不太相同
+    对Lambda：第一个实参数匿名Lambda，拷贝进cb这个function盒子，triggerEvent内部cb(42),等价于直接调用Lambda表达式[](int x){...}并把x设为42
+    对仿函数： triggerEvent内部 p1(100)，借助()重载，打印出100
+*/
+```
+```cpp
+存储和调用不同类型的可调用对象
+符合指定的签名即可，签名指function<int(int, int)>中的<int(int,int)>
+
+
+#include <iostream>
+#include <functional>
+#include <vector>
+int add(int a, int b) {
+    return a + b;
+}
+struct multi {
+    int operator()(int a, int b)const {
+        return a * b;
+    }
+};
+void test() {
+    std::vector<std::function<int(int, int)>> v1;
+    //添加不同类型的可调用对象
+    v1.emplace_back(add);//普通函数
+    v1.emplace_back(multi());//仿函数
+    v1.emplace_back([](int a, int b) {return a - b;});//Lambda
+    for (auto& num : v1) {
+        std::cout << num(10, 5) << " ";
+    }
+}
+```
 #### std::bind对象
+bind是一个函数适配器，用于绑定函数或可调用对象的部分参数，生成一个新的可调用对象<br>
+允许提前固定某些参数，简化函数调用或适应接口需求<br>
+简单的说：把原函数的某些参数钉死，生成一个新函数<br>
+一般用Lambda，很少用bind
+```cpp
+int add(int a, int b) {
+    return a + b;
+}
+void test() {
+    auto add10 = std::bind(add, 10, std::placeholders::_1);
+    std::cout << "10+5=" << add10(5) << std::endl;
+}
+/*
+placeholders::_1为占位符，代表将新函数的第一个参数送到b
+同理对auto sub = std::bind(add, std::placeholders::_2, std::placeholders::_1);
+        意味着，将新函数的第一个参数送到b，将新函数的第二个参数送到a
+auto add10 中的add10的类型是bind内部生成的匿名类型，签名等价于int(int)  少了一个参数是因为第一个参数已经被绑定好了
+*/
+```
+```cpp
+占位符示例
+
+
+void display(const std::string& msg, int count) {
+    for(int i = 0; i < count; ++i) {
+        std::cout << msg << std::endl;
+    }
+}
+int main() {
+    // 绑定消息为"Hello"，生成新的函数对象，只需要传递次数
+    auto sayHello = std::bind(display, "Hello", std::placeholders::_1);
+    sayHello(3);
+    /*
+    输出:
+    Hello
+    Hello
+    Hello
+    */
+    // 绑定次数为2，生成新的函数对象，只需要传递消息
+    auto sayTwice = std::bind(display, std::placeholders::_1, 2);
+    sayTwice("Hi");
+    /*
+    输出:
+    Hi
+    Hi
+    */
+    return 0;
+}
+```
+bind与Lambda对比
+```text
+可读性： Lambda表达式通常更具可读性，语法更直观。
+灵活性： Lambda更易于捕获和使用外部变量。
+性能：   Lambda通常比std::bind更高效，因为std::bind可能引入额外的间接层。
+```
+```cpp
+bind:
+
+int multiply(int a, int b) {
+    return a * b;
+}
+int main() {
+    // 绑定第一个参数为2，生成新的函数对象
+    auto multi = std::bind(multiply,2,std::placeholders::_1);
+    std::cout << "2*5=" << mutli(5);
+}
+
+Lambda:
+
+int multiply(int a, int b) {
+    return a * b;
+}
+int main(){
+    auto multi = [](int b){return multiply(2,b);};
+    std::cout << "2*5=" << mutli(5);
+}
+```
+#### 绑定类的成员函数
+使用 std::bind 绑定成员函数<br>
+使用Lambda表达式绑定成员函数<br>
+绑定静态成员函数<br>
+绑定带有返回值的成员函数<br>
+```text
+注意：
+对象生命周期:绑定成员函数时，确保对象在可调用对象使用期间依然存在，以避免悬空指针问题
+指针与引用:  可以通过指针或引用传递对象实例给std::bind或Lambda表达式
+捕获方式:    在使用Lambda表达式时，选择合适的捕获方式(值捕获或者引用捕获)，以确保对象的正确访问
+```
+##### 一：std::bind绑定成员函数/绑定带有返回值的成员函数
+```cpp
+代码一
+class Calculator{
+public:
+    int multiply(int a,int b)const{//编译器看来是int multiply(Calculator* const this,int a,int b)const
+        return a*b;
+    }
+};
+int main(){
+    Calculator cal;
+    // 绑定成员函数multiply，固定第一个参数为5
+    auto multiply5 = std::bind(&Calculator::multiply,&cal,5,std::placeholders::_1);
+    std::cout<<"5*3=" << multiply5(3) << std::endl;
+    return 0;
+}
+
+
+代码二
+class Math {
+public:
+    double power(double base, double exponent) const {
+        double result = 1.0;
+        for (int i = 0;i < static_cast<int>(exponent);++i) {
+            result *= base;
+        }
+        return result;
+    }
+};
+int main() {
+    Math mathobj;
+    auto powerfunc = std::bind(&Math::power, &mathobj, 2.0, std::placeholders::_1);
+    std::cout << "2.0 ^ 3= " << powerfunc(3.0) << std::endl;
+}
+/*
+其中的static_cast<int>()是c++的命名转换操作符
+static_cast<目标类型>(表达式)
+等价于int(exponent)，但是c语言风格，推荐使用static_cast<>()
+*/
+```
+##### 二：Lambda绑定成员函数
+```cpp
+class Greeter {
+public:
+    void greet(const std::string& name)const {
+        std::cout << "hello " << name << std::endl;
+    }
+};
+int main() {
+    Greeter g1;
+    //使用Lambda绑定成员函数
+    auto greetfunc = [&g1](const std::string& name) {
+        g1.greet(name);
+        };
+    greetfunc("alice");
+    return 0;
+}
+```
+##### 三：绑定静态成员函数
+静态成员函数不依赖于类的实例，可以像普通函数一样使用 std::bind 和 std::function
+```cpp
+class logger{
+public:
+    static void log(const std::string&message){
+        std::cout << "log:" << message << std::endl;
+    }
+};
+int main(){
+    // 使用std::bind绑定静态成员函数
+    // 和bind绑定成员函数相比，少一个类对象
+    auto messagefunc = std::bind(&logger::log,std::placeholders::_1);
+    messagefunc("hello");
+}
+```
+#### 总结
+| 可调用对象        | 描述                                                     | 示例用法                              |
+| ----------------- | -------------------------------------------------------- | ------------------------------------- |
+| 函数指针          | 指向普通函数或静态成员函数的指针                         | `int (*func)(int) = &funcName;`       |
+| 仿函数 (Functors) | 重载了 `operator()` 的类实例，可以携带状态               | `struct Foo { void operator()(); };`  |
+| Lambda表达式      | 定义在表达式中的匿名函数，支持捕获上下文变量             | `[capture](params) { /* code */ }`    |
+| std::function     | 通用的可调用对象包装器，能够封装任何符合签名的可调用对象 | `std::function<void(int)> func;`      |
+| std::bind         | 绑定函数或可调用对象的部分参数，生成新的可调用对象       | `auto newFunc = std::bind(func, _1);` |
+```text
+
+```text
+简单回调：                       使用函数指针或Lambda表达式。
+需要携带状态或更复杂逻辑：        使用Lambda表达式或仿函数（Functors）。
+接口要求 std::function：         使用 std::function，不过要注意可能的性能开销。
+参数预绑定：                     使用 std::bind，但在现代C++中，许多情况下Lambda表达式能达到相同效果且更直观。
+```
+```cpp
+代码总结示例
+
+#include <iostream>
+#include <vector>
+#include <functional>
+#include <algorithm>
+
+//普通函数
+int add(int a, int b) {
+    return a + b;
+}
+
+//仿函数
+struct Multiply {
+    int operator()(int a, int b) const {
+        return a * b;
+    }
+};
+
+//Lambda表达式
+auto subtract = [](int a, int b) {return a - b;};
+
+//类定义
+class Calculator {
+public:
+    int subtract(int a, int b) {
+        return a - b;
+    }
+    void displayoperation(const std::string& op, int result) {
+        std::cout << op << " " << result << std::endl;
+    }
+};
+
+//静态成员函数
+class Logger {
+public:
+    static void Log(const std::string& message) {
+        std::cout << "log: " << message << std::endl;
+    }
+};
+
+int main() {
+    //函数指针
+    int (*func1)(int, int) = add;
+    std::cout << func1(4, 3) << std::endl;
+
+    //仿函数
+    Multiply m1;
+    std::cout << m1(5, 6) << std::endl;
+
+    //Labmda
+    std::cout << subtract(6, 2) << std::endl;
+
+    //function
+    std::function<int(int, int)> funcadd = add;
+    std::function<int(int, int)> funcmul = m1;
+    std::function<int(int, int)> funcsub = subtract;
+
+    std::cout << funcadd(5, 6) << std::endl;
+    std::cout << funcmul(2, 3) << std::endl;
+    std::cout << funcsub(9, 6) << std::endl;
+
+    //bind
+    auto add5 = std::bind(add, 5, std::placeholders::_1);
+    std::cout << add5(9) << std::endl;
+    auto multiply6 = std::bind(m1, 6, std::placeholders::_1);
+    std::cout << multiply6(2) << std::endl;
+
+    //绑定类成员函数
+    Calculator c1;
+    auto sub15 = std::bind(&Calculator::subtract, &c1, 15, std::placeholders::_1);
+    std::cout << sub15(4) << std::endl;
+    auto disoperation1 = std::bind(&Calculator::displayoperation, &c1, "zzx", 5);
+    auto disoperation2 = std::bind(&Calculator::displayoperation, &c1, std::placeholders::_1, 5);
+    auto disoperation3 = std::bind(&Calculator::displayoperation, &c1, "zzx", std::placeholders::_1);
+    disoperation1();
+    disoperation2("zt");
+    disoperation3(9);
+
+    //绑定静态成员函数
+    auto logfunc = std::bind(&Logger::Log, std::placeholders::_1);//静态成员函数实例化不需要具体对象
+    logfunc("ZZX666");
+
+    //function存储混合可调用对象
+    std::vector<std::function<void()>> operations;
+    operations.emplace_back([&]() { std::cout << "Lambda Operation" << std::endl; });
+    operations.emplace_back(std::bind(&Calculator::displayoperation, &c1, "Multiply", 30));
+    operations.emplace_back([&]() { std::cout << "Add5(10): " << add5(10) << std::endl; });
+    operations.emplace_back([&]() { Logger::Log("Lambda-based log message."); });
+    /*添加不同的操作到容器中，事实上，添加的都是function对象，只是每个function对象对应的操作不同 */
+
+// 执行所有操作
+    for (auto& op : operations) {
+        op();
+        //打印Lambda Operation
+        //c1.displayoperation("Multiply",30);
+        //add5(10);
+        //打印 Log: Lambda-based log message.
+    }
+    return 0;
+}
+```
+
+## 数据结构与算法
+### 学习内容
+| 章                 | 必看                                                                                                                                                            | 快速看                                                                                                                                             | 暂时不看                                                                           |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 1 绪论             | 6-9 算法与算法分析：时间/空间复杂度、大O推导                                                                                                                    | 3-4 基本概念和术语                                                                                                                                 | 1-2 前言与课程介绍、5 ADT表示与实现                                                |
+| 2 线性表           | 19-21 顺序表插入删除及复杂度；22-23 链表概念与单链表定义；30-34 插入删除节点、算法分析、头插尾插建表；37-39 双链表插入删除；43-44 有序表合并（顺序+链式）       | 10-18 线性表定义与顺序表示（已会vector）；24-29 链表初始化/销毁/求长/取元素/按值查找等琐碎操作；35-36 循环链表；40-42 三种链表比较、顺序与链式比较 | 45-47 多项式运算与图书管理案例                                                     |
+| 3 栈和队列         | 53-57 顺序栈操作与链栈实现；58 栈与递归；60-62 顺序队列（循环队列front/rear公式、判满判空）、链队列                                                             | 48-52 栈队列定义特点与案例引入；59 队列类型定义                                                                                                    | —                                                                                  |
+| 4 串、数组、广义表 | 67 KMP算法思想（next数组含义）                                                                                                                                  | 66 BF匹配算法                                                                                                                                      | 63-65 串的定义与存储；68-73 数组压缩存储（对称/三角/稀疏矩阵）；74-75 广义表与案例 |
+| 5 树和二叉树       | 81-85 二叉树性质公式、顺序与链式存储；86-93 先中后序递归、中序非递归、层次遍历、由遍历序列建树、复制/求结点/求叶子；101-105 哈夫曼树概念、构造算法、编码思想    | 76-80 树与二叉树定义术语；94 线索二叉树概念；95-100 树森林存储结构及与二叉树转换                                                                   | 106-107 哈夫曼编码译码实现细节                                                     |
+| 6 图               | 112-119 邻接矩阵、邻接表及建表算法；122-125 DFS/BFS思想与两种存储上的实现；129-130 Prim/Kruskal最小生成树；132-134 Dijkstra/Floyd/拓扑排序                      | 108-111 图的基本概念术语；126-128 生成树与MST性质；131 最短路径问题抽象                                                                            | 120-121 十字链表、邻接多重表；135-136 AOE网与关键路径                              |
+| 7 查找             | 140-141 折半查找算法与ASL分析；144-148 二叉排序树定义/查找/插入/删除；149-151 平衡二叉树定义与四种旋转；153-158 散列函数、线性/二次探测、链地址法、查找性能分析 | 137-139 查找概念、顺序查找及分析                                                                                                                   | 142-143 分块查找；152 AVL平衡调整例题细节                                          |
+| 8 排序             | 159 排序概述（稳定性概念）；164-165 快速排序及复杂度分析；167-170 堆调整、建堆、堆排序；171 归并排序；173 各种排序方法比较总结表                                | 160-163 直接/折半插入、希尔、冒泡；166 简单选择；172 基数排序思想                                                                                  | —                                                                                  |
+#### 时间复杂度
+```cpp
+i=1;
+while(i<=n){
+    i = i*2;   
+}
+/*设函数体执行x次，i<=n,可得2^x <= n,进而得x<=log2n
+即O(log2n),写出lgn也行，不在乎底*/
+```
+```cpp
+for(i=0;i<n;i++){
+    t = a[i];
+    a[i] = a[n-i-1];
+    a[n-i-1] = t;
+}
+//空间复杂度O(1)
+
+for(i=0;i<n;i++){
+    b[i] = a[n-i-1];
+}
+for(i=0;i<n;i++){
+    a[i] = b[i];
+}
+//空间复杂度O(n)
+```
