@@ -83,6 +83,10 @@
     - [六：类模板与友元](#六类模板与友元)
   - [案例](#案例)
 - [STL](#stl)
+  - [迭代器](#迭代器)
+    - [一：iterator和const\_iterator](#一iterator和const_iterator)
+    - [二：c++11新内容](#二c11新内容)
+    - [三：注意事项](#三注意事项)
   - [vector](#vector)
     - [一：基本语法](#一基本语法-2)
     - [二：容器中存放自定义数据类型](#二容器中存放自定义数据类型)
@@ -103,6 +107,8 @@
     - [六：string字符串存取](#六string字符串存取)
     - [七：string字符串插入和删除](#七string字符串插入和删除)
     - [八：子串获取](#八子串获取)
+    - [九：字符串输入](#九字符串输入)
+    - [十：字符串流stringstream](#十字符串流stringstream)
   - [deque](#deque)
     - [deque构造函数](#deque构造函数)
     - [deque赋值操作](#deque赋值操作)
@@ -182,10 +188,10 @@
     - [shared\_ptr](#shared_ptr)
     - [shared\_ptr与unique\_ptr](#shared_ptr与unique_ptr)
     - [weak\_ptr](#weak_ptr)
-  - [移动语义](#移动语义)
+  - [移动语义和左右值](#移动语义和左右值)
     - [左值](#左值)
     - [右值](#右值)
-    - [移动语义](#移动语义-1)
+    - [移动语义](#移动语义)
   - [可调用对象function类](#可调用对象function类)
     - [函数指针](#函数指针)
     - [仿函数(函数对象)](#仿函数函数对象)
@@ -197,6 +203,15 @@
       - [二：Lambda绑定成员函数](#二lambda绑定成员函数)
       - [三：绑定静态成员函数](#三绑定静态成员函数)
     - [总结](#总结)
+  - [extern解决重定义问题](#extern解决重定义问题)
+  - [const补充](#const补充)
+    - [const和指针](#const和指针)
+    - [底层const和顶层const](#底层const和顶层const)
+  - [类型推导和别名](#类型推导和别名)
+    - [类型别名](#类型别名)
+    - [auto](#auto)
+    - [decltype(第二种类型说明符，c++11)](#decltype第二种类型说明符c11)
+  - [命名空间](#命名空间)
 - [数据结构与算法](#数据结构与算法)
   - [学习内容](#学习内容)
     - [时间复杂度](#时间复杂度)
@@ -577,6 +592,13 @@ int main(){
     swap(&a,&b);
     cout << a << b << endl;//20 10
 }
+```
+指向指针的引用
+```cpp
+int a = 42;
+int *p;
+int *& p1 = p;
+p1 = &a;//让指针p指向a
 ```
 ## 结构体
 定义
@@ -3512,6 +3534,25 @@ MyArray.hpp 定义了一个“自己管理动态数组的模板类”，project3
 随机访问的容器:vector deque string array   可以++ -- == +n -n < >
 双向访问的容器:list set map  只能++ -- == != 不可用+n/-n/</>
 ```
+### 迭代器
+#### 一：iterator和const_iterator
+const_iterator和指向常量的指针差不多，能读取但不能修改它所指的元素值<br>
+iterator可读可写<br>
+
+#### 二：c++11新内容
+```text
+如果一个容器非常量，可分别通过cbegin/cend获得对应的常量迭代器
+auto it1 = v.cbegin();
+```
+
+#### 三：注意事项
+可能改变容器对象容量的操作，比如push_back()，会使迭代器失效
+```cpp
+for(auto it = number.begin();it!=number.end();++it){
+    number.push_back(1);
+}//在for循环中push元素导致迭代器失效,也会导致死循环
+```
+
 ### vector 
 类似数组，又称单端数组<br>
 不同之处：数组是静态空间，而vector可以动态拓展<br>
@@ -4049,7 +4090,28 @@ int pos = s1.find("@");
 string s2 = s1.substr(0,pos);
 //s2 = zzx58122
 ```
-
+#### 九：字符串输入
+法一：`cin >> str;`这样会以空格为界限，遇到空格停止<br>
+法二：`getline(cin,line);`读到回车为止，如输入hello world，line="hello world"<br>
+```cpp
+补充：
+int age;
+std::string name;
+std::cin>>age;
+std::cin.ignore();//丢掉缓冲区中的\n
+std::getline(std::cin,name);
+/*如果不加ignore(),先输入年龄age=20，再回车，再输入name=zhu zhen xiong，输出时age=20正常，但name为空，因为回车符cin无法处理*/
+```
+#### 十：字符串流stringstream
+```cpp
+#include <sstream>
+int main(){
+    std::stringstream ss;
+    ss<<"value:" << 4 << "," << 2.1;
+    std::string s1 = ss.str();
+    //s1结果为value:4,2.1
+}
+```
 ### deque
 双端数组，可以对头部或者尾部进行插入删除操作<br>
 与vector对比:
@@ -5773,8 +5835,9 @@ int main(){
     //现在可以正常销毁
 }
 ```
-### 移动语义
+### 移动语义和左右值
 #### 左值
+左值引用 T&<br>
 有地址，如int a中的a<br>
 ++x：先把x+1，然后返回x本身，x是有名字，能继续用的对象<br>
 函数形参
@@ -5792,6 +5855,7 @@ int main(){
 const char (*p)[10] = &"abcdefg"; //字符串"abcdefg"可取地址
 ```
 #### 右值
+右值引用 T&&<br>
 没有地址的临时值，如int a = 5中的5<br>
 x++：先把x的旧值拷贝一份存起来，再让x+1，最后把那份拷贝交出去，那个拷贝是转瞬即逝的临时量，没有名字，出了这条语句就没了<br>
 函数返回值
@@ -6466,6 +6530,118 @@ int main() {
     return 0;
 }
 ```
+### extern解决重定义问题
+声明放头文件中，定义/实现放cpp中
+```cpp
+//在.h文件中使用extern声明
+extern int age;
+
+//在cpp文件中实现/定义
+int age = 10;
+```
+### const补充
+#### const和指针
+`int * const a = &x;`//指针a为常量不可修改，指向的值可以修改<br>
+`const int * const b = &x;`//指针和指向的值都不可以修改<br>
+`const int * c = &x;`//指针可以修改指向，但是指针指向的值是常量不可以修改
+#### 底层const和顶层const
+顶层const：这个对象本身是常量<br>
+```cpp
+int * const pi = &i;//不能修改pi的指向
+const int ci  = 42;//不能修改ci的值
+```
+底层const：不能通过它修改所指对象
+```cpp
+const int *  p2 = &ci;//不能修改ci的值
+```
+```cpp
+const int * const p3 = p2;
+//第一个const是底层，第二个是顶层
+```
+
+### 类型推导和别名
+#### 类型别名
+类型别名的定义都写在类外，类似全局变量
+```cpp
+老版本写法
+typedef double wages;//wages是double的同义词
+typedef wages base,*p;// base是double的同义词，p是double*的同义词
+```
+```cpp
+c++11 新写法
+using int_64 = long long;
+int_64 a = 10;
+//int_64是long long的同义词
+
+```
+
+#### auto
+一条语句可以声明多个变量，但数据类型要一致
+```cpp
+auto a = 1,b = 2.1;//错误
+```
+auto一般会忽略顶层const，保留底层const
+```cpp
+int i=0,&r=i;
+auto a = r;//a是一个整数，类型是r所引用的类型,即a是int 而非int&
+const int b=i,&c=b;//b是int类型的常量，c是常量引用
+auto d=b;//d是一个整数，b的顶层const被忽略了
+auto e=c;//e是另一个整数，c是b的别名，b本身是一个顶层const，但auto把顶层const忽略，所以e不是常量而是整数
+auto f=&i;//f是一个整形指针，i是整形
+auto *g=&b;//g是一个指向常量的指针，对常量对象取地址是一种底层const，为const int*类型
+
+//如果想让auto推导出顶层const
+const auto h = b;
+```
+auto存在的问题
+```text
+问题一：
+    
+问题二：
+```
+
+#### decltype(第二种类型说明符，c++11)
+作用:希望从表达式的类型推断出要定义的变量的类型，但是不想用该表达式的值初始化变量
+```cpp
+decltype(f()) sum = x;//sum的类型就是函数f的返回值的类型
+/*编译器并不实际调用函数f，而是使用当调用发生时f的返回值类型作为sum的类型。
+换句话说，编译器为sum指定的类型是,假如f被调用的话将会返回的那个类型*/
+
+
+//如果decltype使用的表达式是一个变量，则decltype返回该变量的类型（包括顶层const和引用在内）
+const int ci=0,&cj=ci;
+decltype(ci) x=0;//x是const int类型
+decltype(cj) y=x;//y是const int&类型,y绑定到x
+decltype(cj) z;//错误写法，z是一个引用，必须初始化
+//引用从来都作为其所指对象的同义词出现，只有用在decltype处是一个例外
+decltype(cj) m=ci;//此处m为int&,对比auto，同样的情形，m为int
+decltype((ci)) n = ci;//此处虽然ci是int，但是写的是(ci)，故而n为int&而非int
+```
+
+### 命名空间
+开发中尽量不用using namespace std;因为其他库，如boost中，也可能含有cout/cin等用法，出现冲突<br>
+解决办法一：`std::cout   std::endl` <br>
+解决办法二：开头声明`using std::cout;   using std::endl;`,这样在此文件下的cout和endl都是std命名空间下的<br>
+头文件不应包含using声明
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 数据结构与算法
 ### 学习内容
