@@ -184,6 +184,7 @@
   - [容器案例](#容器案例)
 - [c++进阶补充](#c进阶补充)
   - [智能指针](#智能指针)
+    - [内存管理](#内存管理)
     - [unique\_ptr](#unique_ptr)
     - [shared\_ptr](#shared_ptr)
     - [shared\_ptr与unique\_ptr](#shared_ptr与unique_ptr)
@@ -3552,7 +3553,50 @@ for(auto it = number.begin();it!=number.end();++it){
     number.push_back(1);
 }//在for循环中push元素导致迭代器失效,也会导致死循环
 ```
+```cpp
+#include <iostream>
+#include <vector>
+#include <functional>
+#include <algorithm>
+#include <vector>
 
+int main() {
+    std::vector<int> v1 = { 1,2,11,34,66,55,3,4,5 };
+    /*for (auto it1 = v1.begin();it1 != v1.end(); ) {
+        if ((*it1) % 2 != 0) {
+
+            it1 = v1.erase(it1);
+            continue;
+        }
+        ++it1;
+    }*/
+    v1.erase(std::remove_if(v1.begin(), v1.end(), [](int n) {return n % 2 != 0; }), v1.end());
+    for (auto it1 = v1.begin();it1 != v1.end(); ++it1) {
+        std::cout << *it1 << " ";
+    }
+    return 0;
+}
+
+/*int main() {
+    std::vector<int> v1 = { 1,2,11,34,66,55,3,4,5 };
+    for (auto it1 = v1.begin();it1 != v1.end(); ++it1) {
+        if ((*it1) % 2 != 0) {
+            v1.erase(it1);
+        }
+    }
+    for (auto it1 = v1.begin();it1 != v1.end(); ++it1) {
+        std::cout << *it1 << " ";
+    }
+    return 0;
+}*/
+
+/*
+错误写法一：
+for (auto it1 = v1.begin();it1 != v1.end(); ++it1) 索引问题
+错误写法二：
+it1 = v1.erase(it1);on问题
+*/
+```
 ### vector 
 类似数组，又称单端数组<br>
 不同之处：数组是静态空间，而vector可以动态拓展<br>
@@ -5578,6 +5622,18 @@ speech_system<br>
 ## c++进阶补充
 ### 智能指针
 用智能指针要加头文件 #include <memory>
+#### 内存管理
+malloc free  和   new delete的区别
+```text
+new直接返回正确类型的指针，免去了强制类型转换
+new和delete自动调用构造函数和析构函数
+异常处理：在分配空间失败时，new默认抛出std::bad_alloc异常，而malloc返回nullptr
+```
+利用new delete实现vector的部分功能<br>
+[vector_simulate.cpp 源码](./vector_simulate.cpp)<br>
+简单内存池
+[memory_pool.cpp 源码](./memory_pool.cpp) 暂未完成<br>
+
 #### unique_ptr
 独占指针<br>
 在任何给定的时刻，只能有一个指针管理内存。当指针超出作用域时，内存将自动释放<br>
