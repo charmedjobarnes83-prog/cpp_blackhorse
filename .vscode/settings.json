@@ -43,5 +43,5 @@
     // 缩进风格：4 空格、大括号换行等，可按喜好改
     // ReflowComments: false  -> 不重排注释文字（汉字注释不会被按列宽折断）
     // AlignTrailingComments: false -> 不改动行尾注释的对齐位置
-    "C_Cpp.clang_format_style": "{ BasedOnStyle: Microsoft, IndentWidth: 4, ColumnLimit: 120, ReflowComments: false, AlignTrailingComments: false }"
+    "C_Cpp.clang_format_style": "{ BasedOnStyle: Microsoft, IndentWidth: 4, ColumnLimit: 120, ReflowComments: false, AlignTrailingComments: false, BreakTemplateDeclarations: Yes }"
 }
