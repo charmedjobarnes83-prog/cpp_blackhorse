@@ -463,3 +463,28 @@ unzip解压
         unzip [-d] 参数
         -d 指定要解压去的位置
         如 uxnzip text.tar -d /home/zzx
+
+#########################################################################
+
+mysql
+
+        /etc/init.d/mysql start    启动mysql
+        /etc/init.d/mysql stop     停止mysql
+        /etc/init.d/mysql status   查看状态
+
+#########################################################################
+
+scp  通过ssh命令传输文件
+
+        scp [-r] linux路径1 linux路径2
+        -r 复制文件夹
+        linux路径分别为本机路径或远程目标路径
+        如 
+                scp -r /export/server/jdk root@node2:/export/server/ 将本机jdk文件夹传到node2下
+                scp -r node2:/export/server/jdk /export/server/   将node2的jdk文件夹传到本机
+
+############################################################################
+
+shell
+
+        命令行解释器，接收应用程序/用户命令，然后调用操作系统内核

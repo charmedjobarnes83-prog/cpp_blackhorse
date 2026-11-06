@@ -1,5 +1,9 @@
 #include <iostream>
 
+/*
+  控制块用于存储引用计数和指向实际对象的指针
+  此处把指向实际对象的指针放在了class SimpleSharedPtr中
+*/
 struct ControlBlock
 {
     int ref_count;
@@ -8,7 +12,8 @@ struct ControlBlock
     }
 };
 
-template <typename T> class SimpleSharePtr
+template <typename T>
+class SimpleSharePtr
 {
   private:
     T *ptr;
@@ -39,7 +44,7 @@ template <typename T> class SimpleSharePtr
         if (p)
         {
             control = new ControlBlock();
-            std::cout << "constduct" << std::endl;
+            std::cout << "construct" << std::endl;
         }
         else
         {

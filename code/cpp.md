@@ -5633,6 +5633,12 @@ new和delete自动调用构造函数和析构函数
 [vector_simulate.cpp 源码](./vector_simulate.cpp)<br>
 简单内存池
 [memory_pool.cpp 源码](./memory_pool.cpp) 暂未完成<br>
+SimpleSharedPtr实现
+[SimpleSharedPtr.cpp 源码](./SimpleSharedPtr.cpp)<br>
+```text
+
+
+```
 
 #### unique_ptr
 独占指针<br>
